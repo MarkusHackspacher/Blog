@@ -31,20 +31,17 @@ class BlogTest extends PHPUnit_Framework_TestCase
 
     public function testexcerpt()
     {
-        $test = excerpt('http://Test.de');
-
-        $this->assertEquals('http-test-de', $test);
+        $test = excerpt('abcdefg', 3);
+        $this->assertEquals('abc', $test);
     }
     public function testremoveHTML()
     {
         $test = removeHTML('<script>alert('XSS');</script>');
-
         $this->assertEquals('&lt;script&gt;alert("XSS");&lt;/script&gt;', $test);
     }
     public function testescapeHTML()
     {
         $test = escapeHTML('&"<>');
-
         $this->assertEquals('&amp;&quot;&lt;&gt;', $test);
     }
 } 
