@@ -34,7 +34,7 @@ class BlogTest extends PHPUnit_Framework_TestCase
         $test = excerpt('abcdefg', 3);
         $this->assertEquals('abcdefg', $test);
         $test = excerpt('abcdefg abcdef abcde', 3);
-        $this->assertEquals('abcdefg […]', $test);
+        $this->assertEquals('abcdefg abcdef abcde', $test);
         $test = excerpt('Simple test string.', 10);
         $this->assertEquals('Simple […]', $test);
         $test = excerpt('Simple longer <br />test string.');
@@ -46,12 +46,14 @@ class BlogTest extends PHPUnit_Framework_TestCase
     public function testremoveHTML()
     {
         $test = removeHTML('<script>alert("XSS");</script>');
-        $this->assertEquals('&lt;script&gt;alert("XSS");&lt;/script&gt;', $test);
+        $this->assertEquals('alert("XSS");', $test);
     }
     public function testescapeHTML()
     {
         $test = escapeHTML('&"<>');
         $this->assertEquals('&amp;&quot;&lt;&gt;', $test);
+        $test = escapeHTML('<script>alert("XSS");</script>');
+        $this->assertEquals('&lt;script&gt;alert("XSS");&lt;/script&gt;', $test);
     }
 } 
 ?>
