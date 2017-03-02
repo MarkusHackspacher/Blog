@@ -26,13 +26,15 @@ class BlogTest extends PHPUnit_Framework_TestCase
         $test = makeSlugURL('http://Test.de');
         $this->assertEquals('http-test-de', $test);
         $test = makeSlugURL('http://äüö.de');
-        $this->assertEquals('http-test-de', $test);
+        $this->assertEquals('http-aeueoe-de', $test);
     }
 
     public function testexcerpt()
     {
         $test = excerpt('abcdefg', 3);
-        $this->assertEquals('abc', $test);
+        $this->assertEquals('abcdefg', $test);
+        $test = excerpt('abcdefg abcdef abcde', 3);
+        $this->assertEquals('abcdefg', $test);
     }
     public function testremoveHTML()
     {
