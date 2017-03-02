@@ -34,7 +34,12 @@ class BlogTest extends PHPUnit_Framework_TestCase
         $test = excerpt('abcdefg', 3);
         $this->assertEquals('abcdefg', $test);
         $test = excerpt('abcdefg abcdef abcde', 3);
-        $this->assertEquals('abcdefg', $test);
+        $this->assertEquals('abcdefg […]', $test);
+        $test = excerpt('Simple test string.', 10);
+        $this->assertEquals('Simple […]', $test);
+        $test = excerpt('Simple longer<br />test string.');
+        $this->assertEquals('Simple […]', $test);
+
     }
     public function testremoveHTML()
     {
