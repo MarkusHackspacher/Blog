@@ -24,7 +24,8 @@ class BlogTest extends PHPUnit_Framework_TestCase
     public function testmakeSlugURL()
     {
         $test = makeSlugURL('http://Test.de');
-
+        $this->assertEquals('http-test-de', $test);
+        $test = makeSlugURL('http://äüö.de');
         $this->assertEquals('http-test-de', $test);
     }
 
@@ -36,15 +37,15 @@ class BlogTest extends PHPUnit_Framework_TestCase
     }
     public function testremoveHTML()
     {
-        $test = removeHTML('http://Test.de');
+        $test = removeHTML('<script>alert('XSS');</script>');
 
-        $this->assertEquals('http-test-de', $test);
+        $this->assertEquals('&lt;script&gt;alert('XSS');&lt;/script&gt;', $test);
     }
     public function testescapeHTML()
     {
-        $test = escapeHTML('http://Test.de');
+        $test = escapeHTML('&"<>');
 
-        $this->assertEquals('http-test-de', $test);
+        $this->assertEquals('&amp;&quot;&lt;&gt;', $test);
     }
 } 
 ?>
