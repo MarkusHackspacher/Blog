@@ -24,12 +24,19 @@ class BlogTest extends PHPUnit_Framework_TestCase
     public function testmakeSlugURL()
     {
         $test = makeSlugURL('http://Test.de');
+<<<<<<< HEAD
 
         $this->assertEquals('http-test-de', $test);
+=======
+        $this->assertEquals('http-test-de', $test);
+        $test = makeSlugURL('http://äüö.de');
+        $this->assertEquals('http-aeueoe-de', $test);
+>>>>>>> 3c0b58158cfb27ed892d5d925461f8113a0b992f
     }
 
     public function testexcerpt()
     {
+<<<<<<< HEAD
         $test = excerpt('http://Test.de');
 
         $this->assertEquals('http-test-de', $test);
@@ -45,6 +52,36 @@ class BlogTest extends PHPUnit_Framework_TestCase
         $test = escapeHTML('http://Test.de');
 
         $this->assertEquals('http-test-de', $test);
+=======
+        $test = excerpt('abcdefg', 3);
+        $this->assertEquals('abcdefg', $test);
+        $test = excerpt('abcdefg abcdef abcde', 3);
+        $this->assertEquals('abcdefg abcdef abcde', $test);
+        $test = excerpt('Simple test string.', 10);
+        $this->assertEquals('Simple  […]', $test);
+        $test = excerpt('Simple longer <br />test string.');
+        $this->assertEquals('Simple longer test string.', $test);
+        $test = excerpt('This is just a <strong>test</strong> string!', 20);
+        $this->assertEquals('This is just a test  […]', $test);
+
+    }
+    public function testremoveHTML()
+    {
+        $test = removeHTML('<script>alert("XSS");</script>');
+        $this->assertEquals('alert("XSS");', $test);
+    }
+    public function testescapeHTML()
+    {
+        $test = escapeHTML('&"<>');
+        $this->assertEquals('&amp;&quot;&lt;&gt;', $test);
+        $test = escapeHTML('<script>alert("XSS");</script>');
+        $this->assertEquals('&lt;script&gt;alert(&quot;XSS&quot;);&lt;/script&gt;', $test);
+    }
+    public function testcut()
+    {
+        $test = cut('This is just a <strong>test</strong> string!', 20);
+        $this->assertEquals('This is just a < […]', $test);
+>>>>>>> 3c0b58158cfb27ed892d5d925461f8113a0b992f
     }
 } 
 ?>
