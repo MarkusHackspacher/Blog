@@ -58,7 +58,7 @@ class BlogTest extends PHPUnit_Framework_TestCase
     public function testcut()
     {
         $test = cut('This is just a <strong>test</strong> string!', 20);
-        $this->assertEquals('This is just a <stro', $test);
+        $this->assertEquals('This is just a < […]', $test);
     }
 } 
 ?>
