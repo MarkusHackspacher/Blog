@@ -39,7 +39,7 @@ class BlogTest extends PHPUnit_Framework_TestCase
     {
         $test = removeHTML('<script>alert('XSS');</script>');
 
-        $this->assertEquals('&lt;script&gt;alert('XSS');&lt;/script&gt;', $test);
+        $this->assertEquals('&lt;script&gt;alert("XSS");&lt;/script&gt;', $test);
     }
     public function testescapeHTML()
     {
