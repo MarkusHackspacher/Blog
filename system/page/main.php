@@ -5,7 +5,7 @@
 require_once '../../core/application.php';
 
 #===============================================================================
-# TRY: Page\Exception
+# TRY: Page\Exception, User\Exception
 #===============================================================================
 try {
 	if(Application::get('PAGE.SLUG_URLS')) {
@@ -22,7 +22,7 @@ try {
 	$user_data = generateUserItemData($User);
 
 	#===============================================================================
-	# Add post data for previous and next post if exists
+	# Add page data for previous and next page
 	#===============================================================================
 	try {
 		$PrevPage = Page\Factory::build($Page->getPrevID());
@@ -46,7 +46,7 @@ try {
 		$MainTemplate->set('HTML', $PageTemplate);
 		$MainTemplate->set('HEAD', [
 			'NAME' => $page_data['ATTR']['NAME'],
-			'DESC' => cut(removeLineBreaksAndTabs(removeHTML($Page->getHTML()), ' '), Application::get('PAGE.DESCRIPTION_SIZE')),
+			'DESC' => cut(removeLineBreaksAndTabs(removeHTML($page_data['BODY']['HTML']), ' '), Application::get('PAGE.DESCRIPTION_SIZE')),
 			'PERM' => $page_data['URL'],
 			'OG_IMAGES' => $page_data['FILE']['LIST']
 		]);

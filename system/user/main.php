@@ -19,7 +19,7 @@ try {
 	$user_data = generateUserItemData($User);
 
 	#===============================================================================
-	# Add user data for previous and next user if exists
+	# Add user data for previous and next user
 	#===============================================================================
 	try {
 		$PrevUser = User\Factory::build($User->getPrevID());
@@ -61,7 +61,7 @@ try {
 		$MainTemplate->set('HTML', $UserTemplate);
 		$MainTemplate->set('HEAD', [
 			'NAME' => $user_data['ATTR']['FULLNAME'],
-			'DESC' => cut(removeLineBreaksAndTabs(removeHTML($User->getHTML()), ' '), Application::get('USER.DESCRIPTION_SIZE')),
+			'DESC' => cut(removeLineBreaksAndTabs(removeHTML($user_data['BODY']['HTML']), ' '), Application::get('USER.DESCRIPTION_SIZE')),
 			'PERM' => $User->getURL(),
 			'OG_IMAGES' => $User->getFiles()
 		]);
