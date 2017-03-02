@@ -24,35 +24,13 @@ class BlogTest extends PHPUnit_Framework_TestCase
     public function testmakeSlugURL()
     {
         $test = makeSlugURL('http://Test.de');
-<<<<<<< HEAD
-
-        $this->assertEquals('http-test-de', $test);
-=======
         $this->assertEquals('http-test-de', $test);
         $test = makeSlugURL('http://äüö.de');
         $this->assertEquals('http-aeueoe-de', $test);
->>>>>>> 3c0b58158cfb27ed892d5d925461f8113a0b992f
     }
 
     public function testexcerpt()
     {
-<<<<<<< HEAD
-        $test = excerpt('http://Test.de');
-
-        $this->assertEquals('http-test-de', $test);
-    }
-    public function testremoveHTML()
-    {
-        $test = removeHTML('http://Test.de');
-
-        $this->assertEquals('http-test-de', $test);
-    }
-    public function testescapeHTML()
-    {
-        $test = escapeHTML('http://Test.de');
-
-        $this->assertEquals('http-test-de', $test);
-=======
         $test = excerpt('abcdefg', 3);
         $this->assertEquals('abcdefg', $test);
         $test = excerpt('abcdefg abcdef abcde', 3);
@@ -81,7 +59,6 @@ class BlogTest extends PHPUnit_Framework_TestCase
     {
         $test = cut('This is just a <strong>test</strong> string!', 20);
         $this->assertEquals('This is just a < […]', $test);
->>>>>>> 3c0b58158cfb27ed892d5d925461f8113a0b992f
     }
 } 
 ?>
