@@ -2,7 +2,7 @@
 
 <phpunit bootstrap="tests/bootstrap.php" colors="true">
     <php>
-        <var name="db_dsn" value="mysql:dbname=NerdmindBlog_test;host=localhost"/>
+        <var name="db_dsn" value="mysql:dbname=blog;host=localhost"/>
         <var name="db_username" value="root"/>
         <var name="db_password" value=""/>
     </php>

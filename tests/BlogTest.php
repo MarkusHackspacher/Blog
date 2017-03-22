@@ -1,7 +1,8 @@
 <?php
 require_once 'core/functions.php';
+require_once 'core/application.php';
 
-class BlogTest extends PHPUnit_Framework_TestCase
+class BlogTest extends PHPUnit\Framework\TestCase
 # Example from https://github.com/travis-ci-examples/php
 {
     /**
@@ -21,12 +22,69 @@ class BlogTest extends PHPUnit_Framework_TestCase
         $this->pdo->query("DROP TABLE hello");
     }
 
+    # Helper function to reduce duplicate code
+    public function testgeneratePageNaviTemplate()
+    {
+        $test = generatePageNaviTemplate(1);
+        $this->assertEquals(1 , $test->get('THIS'));
+        $this->assertEquals(1 , $test->get('LAST'));
+        $this->assertEquals('https://localhost:8080/page/?site=%d' , $test->get('HREF'));
+    }
+
+    # Helper function to reduce duplicate code
+    public function testgeneratePostNaviTemplate()
+    {
+        $test = generatePostNaviTemplate(1);
+        $this->assertEquals(1 , $test->get('THIS'));
+        $this->assertEquals(1 , $test->get('LAST'));
+        $this->assertEquals('https://localhost:8080/post/?site=%d' , $test->get('HREF'));
+    }
+
+    # Helper function to reduce duplicate code
+    public function testgenerateUserNaviTemplate()
+    {
+        $test = generateUserNaviTemplate(1);
+        $this->assertEquals(1 , $test->get('THIS'));
+        $this->assertEquals(1 , $test->get('LAST'));
+        $this->assertEquals('https://localhost:8080/user/?site=%d' , $test->get('HREF'));
+    }
+
     public function testmakeSlugURL()
     {
         $test = makeSlugURL('http://Test.de');
         $this->assertEquals('http-test-de', $test);
         $test = makeSlugURL('http://äüö.de');
         $this->assertEquals('http-aeueoe-de', $test);
+        $this->assertEquals('a-simple-slug-test', makeSlugURL('A simple Slug Test!'));
+        $this->assertEquals('dies-ist-ein-supercooler-blogpost',
+                            makeSlugURL('Dies ist ein supercooler Blogpost!'));
+        $this->assertEquals('se-r-sumer-orateur', makeSlugURL('se résumer orateur:'));
+        $this->assertEquals('', makeSlugURL('           '));
+        $this->assertEquals('u-z', makeSlugURL('ûûûuûûû  ^z')); 
+        $this->assertEquals('', makeSlugURL('ûôûôûôûââ')); 
+    }
+
+    public function testDBfetchHello()
+    {
+        $sth = $this->pdo->prepare("SELECT * FROM hello");
+        $sth->execute();
+        $this->assertEquals(Array (), $sth->fetchAll());
+    }
+
+    public function testDBfetch()
+    {
+        $sth = $this->pdo->prepare("SELECT id FROM page");
+        $sth->execute();
+        $test = $sth->fetchAll();
+        $this->assertEquals(Array(Array('id' => 1, 1)), $test);
+
+        $sth = $this->pdo->prepare("SELECT id FROM post");
+        $sth->execute();
+        $this->assertEquals(Array(Array('id' => 1, 1)), $sth->fetchAll());
+
+        $sth = $this->pdo->prepare("SELECT id FROM user");
+        $sth->execute();
+        $this->assertEquals(Array(Array('id' => 1, 1)), $sth->fetchAll());
     }
 
     public function testexcerpt()
@@ -43,11 +101,13 @@ class BlogTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('This is just a test  […]', $test);
 
     }
+
     public function testremoveHTML()
     {
         $test = removeHTML('<script>alert("XSS");</script>');
         $this->assertEquals('alert("XSS");', $test);
     }
+
     public function testescapeHTML()
     {
         $test = escapeHTML('&"<>');
@@ -55,10 +115,36 @@ class BlogTest extends PHPUnit_Framework_TestCase
         $test = escapeHTML('<script>alert("XSS");</script>');
         $this->assertEquals('&lt;script&gt;alert(&quot;XSS&quot;);&lt;/script&gt;', $test);
     }
+
     public function testcut()
     {
         $test = cut('This is just a <strong>test</strong> string!', 20);
         $this->assertEquals('This is just a < […]', $test);
+    }
+
+    # Parse emoticons to HTML encoded unicode characters
+    public function testparseEmoticons()
+    {
+        $test = parseEmoticons('This :D is ;) just :) a test :X string 8) ! :|');
+        $this->assertEquals('This <span title="Smiling face with open mouth">&#x1F603;</span> is <span title="Winking face">&#x1F609;</span> just <span title="Smiling face with smiling eyes">&#x1F60A;</span> a test <span title="Dizzy face">&#x1F635;</span> string <span title="Smiling face with sunglasses">&#x1F60E;</span> ! <span title="Neutral face">&#x1F610;</span>', $test);
+        $test = parseEmoticons(':)');
+        $this->assertEquals(' <span title="Smiling face with smiling eyes">&#x1F60A;</span>', $test);
+        $test = parseEmoticons(':(');
+        $this->assertEquals(' <span title="Disappointed face">&#x1F61E;</span>', $test);
+        $test = parseEmoticons(':D');
+        $this->assertEquals(' <span title="Smiling face with open mouth">&#x1F603;</span>', $test);
+        $test = parseEmoticons(':P');
+        $this->assertEquals(' <span title="Face with stuck-out tongue">&#x1F61B;</span>', $test);
+    }
+
+
+    # Parser for datetime formatted strings [YYYY-MM-DD HH:II:SS]
+    public function testparseDatetime()
+    {
+        $test = parseDatetime('2000-01-01 12:34:56', '[W] [D] [F] [Y]');
+        $this->assertEquals('Saturday 01 January 2000', $test);
+        $test = parseDatetime('2027-03-24 12:34:56', '[W] [D] [F] [Y]');
+        $this->assertEquals('Wednesday 24 March 2027', $test);
     }
 } 
 ?>

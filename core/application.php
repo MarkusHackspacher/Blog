@@ -3,7 +3,7 @@
 # Application initialization                 [Thomas Lange <code@nerdmind.de>] #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 #                                                                              #
-# This file is included by each file from the system or admin directory.       #
+# This file brings the application up!                                         #
 #                                                                              #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 
@@ -17,9 +17,13 @@ define('ROOT', dirname(__DIR__).'/');
 #===============================================================================
 spl_autoload_register(function($classname) {
 	$classname = str_replace('\\', '/', $classname);
-	require_once "namespace/{$classname}.php";
+	$exclude_list = array('PHPUnit/DbUnit/TestCase',
+			      'Symfony/Component/Yaml/Yaml',
+			      'Composer/Autoload/ClassLoader');
+	if (!in_array($classname, $exclude_list)) {
+	        require_once "namespace/{$classname}.php";
+	}
 });
-
 #===============================================================================
 # Exception handler for non-caught exceptions
 #===============================================================================
