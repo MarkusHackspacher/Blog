@@ -9,7 +9,8 @@ class ClassTest extends PHPUnit\Framework\TestCase
     {
         $Parsedown = new Parsedown();
         $this->assertInstanceOf(Parsedown::class, $Parsedown);
-        $this->assertEquals('Hello _Parsedown_!', $Parsedown->text('Hello _Parsedown_!'));
+        $this->assertEquals('<p>Hello <em>Parsedown</em>!</p>',
+                            $Parsedown->text('Hello _Parsedown_!'));
     }
 
     public function testClassRouter()
@@ -17,7 +18,7 @@ class ClassTest extends PHPUnit\Framework\TestCase
         $Router = new Router();
         $this->assertInstanceOf(Router::class, $Router);
         $_SERVER['REQUEST_URI'] = '/';
-        Router::execute('https://localhost:8080/feed/');
+        $Router->execute('https://localhost:8080/feed/');
     }
 }
 ?>
