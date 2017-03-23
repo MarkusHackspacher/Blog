@@ -16,7 +16,7 @@ class ClassTest extends PHPUnit\Framework\TestCase
         $Router = new Router();
         $this->assertInstanceOf(Router::class, $Router);
         $_SERVER['REQUEST_URI'] = '/';
-        Router::execute('/');
+        $Router::execute('/');
     }
 }
 ?>
