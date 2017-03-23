@@ -59,7 +59,7 @@ class BlogTest extends PHPUnit\Framework\TestCase
         $testpage = $test->get('PAGE');
         $this->assertEquals(1 , $testpage['ID']);
         $this->assertEquals('https://localhost:8080/page/example-page/' , $testpage['URL']);
-        $testuser = $test->get('USER'));
+        $testuser = $test->get('USER');
         $this->assertEquals(1 , $testuser['ID']);
         $this->assertEquals('https://localhost:8080/user/change-me/' , $testuser['URL']);
 
