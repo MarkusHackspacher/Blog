@@ -50,19 +50,22 @@ class BlogTest extends PHPUnit\Framework\TestCase
     }
 
     # Helper function to reduce duplicate code
-    public function testgeneratePageItemTemplate()
+    public function testgenerateItemTemplate()
     {
         $Page = Page\Factory::build(1);
         $User = User\Factory::build($Page->attr('user'));
-        $page_data = generatePageItemData($Page);
-        $user_data = generateUserItemData($User);
 
         $test = generatePageItemTemplate($Page, $User);
         $testpage = $test->get('PAGE');
         $this->assertEquals(1 , $testpage['ID']);
         $this->assertEquals('https://localhost:8080/page/example-page/' , $testpage['URL']);
-        print_r($test->get('USER'));
-        $this->assertEquals(Array () , $test->get('USER'));
+        $testuser = $test->get('USER'));
+        $this->assertEquals(1 , $testuser['ID']);
+        $this->assertEquals('https://localhost:8080/user/change-me/' , $testuser['URL']);
+        $test = generatePostItemTemplate($Page, $User);
+        $test = generateUserItemTemplate($User);
+        $page_data = generatePageItemData($Page);
+        $user_data = generateUserItemData($User);
     }
 
     public function testmakeSlugURL()
