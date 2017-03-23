@@ -9,6 +9,7 @@ class ClassTest extends PHPUnit\Framework\TestCase
     {
         $Parsedown = new Parsedown();
         $this->assertInstanceOf(Parsedown::class, $Parsedown);
+        $this->assertEquals('Hello _Parsedown_!', $Parsedown->text('Hello _Parsedown_!'));
     }
 
     public function testClassRouter()
