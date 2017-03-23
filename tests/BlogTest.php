@@ -58,8 +58,10 @@ class BlogTest extends PHPUnit\Framework\TestCase
         $user_data = generateUserItemData($User);
 
         $test = generatePageItemTemplate($Page, $User);
-        $this->assertEquals(1 , $test->get('PAGE'));
-        $this->assertEquals(1 , $test->get('USER'));
+        print_r($test->get('PAGE'));
+        $this->assertEquals(Array () , $test->get('PAGE'));
+        print_r($test->get('USER'));
+        $this->assertEquals(Array () , $test->get('USER'));
     }
 
     public function testmakeSlugURL()
