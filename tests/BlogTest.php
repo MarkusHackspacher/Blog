@@ -62,9 +62,15 @@ class BlogTest extends PHPUnit\Framework\TestCase
         $testuser = $test->get('USER'));
         $this->assertEquals(1 , $testuser['ID']);
         $this->assertEquals('https://localhost:8080/user/change-me/' , $testuser['URL']);
-        $test = generatePostItemTemplate($Page, $User);
+
         $test = generateUserItemTemplate($User);
+
+        $Post = Post\Factory::build(1);
+        $User = User\Factory::build($Post->attr('user'));
+        $test = generatePostItemTemplate($Post, $User);
+
         $page_data = generatePageItemData($Page);
+        $post_data = generatePostItemData($Post);
         $user_data = generateUserItemData($User);
     }
 
