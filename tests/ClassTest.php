@@ -6,7 +6,8 @@ class ClassTest extends PHPUnit\Framework\TestCase
 {
     public function testClassRouter()
     {
-        $test = Router();
+        $Parsedown = new Parsedown();
+        $Router = new Router();
     }
 }
 ?>
