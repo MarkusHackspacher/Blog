@@ -49,6 +49,19 @@ class BlogTest extends PHPUnit\Framework\TestCase
         $this->assertEquals('https://localhost:8080/user/?site=%d' , $test->get('HREF'));
     }
 
+    # Helper function to reduce duplicate code
+    public function testgeneratePageItemTemplate()
+    {
+        $Page = Page\Factory::build(1);
+        $User = User\Factory::build($Page->attr('user'));
+        $page_data = generatePageItemData($Page);
+        $user_data = generateUserItemData($User);
+
+        $test = generatePageItemTemplate($Page, $User);
+        $this->assertEquals(1 , $test->get('PAGE'));
+        $this->assertEquals(1 , $test->get('USER'));
+    }
+
     public function testmakeSlugURL()
     {
         $test = makeSlugURL('http://Test.de');
