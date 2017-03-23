@@ -8,11 +8,14 @@ class ClassTest extends PHPUnit\Framework\TestCase
     public function testClassParsedown()
     {
         $Parsedown = new Parsedown();
+        $this->assertInstanceOf(Parsedown::class, $Parsedown);
     }
 
     public function testClassRouter()
     {
         $Router = new Router();
+        $this->assertInstanceOf(Router::class, $Router);
+
     }
 }
 ?>
