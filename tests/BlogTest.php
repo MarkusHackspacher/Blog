@@ -58,7 +58,7 @@ class BlogTest extends PHPUnit\Framework\TestCase
         $user_data = generateUserItemData($User);
 
         $test = generatePageItemTemplate($Page, $User);
-        $testpage = $test->get('PAGE')
+        $testpage = $test->get('PAGE');
         $this->assertEquals(1 , $testpage['ID']);
         $this->assertEquals('https://localhost:8080/page/example-page/' , $testpage['URL']);
         print_r($test->get('USER'));
