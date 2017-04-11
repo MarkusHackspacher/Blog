@@ -76,7 +76,7 @@ try {
 # CATCH: Template\Exception
 #===============================================================================
 	catch(Template\Exception $Exception) {
-		$Exception->defaultHandler();
+		Application::exit($Exception->getMessage());
 	}
 }
 
@@ -84,6 +84,6 @@ try {
 # CATCH: User\Exception
 #===============================================================================
 catch(User\Exception $Exception) {
-	Application::exit(404);
+	Application::error404();
 }
 ?>

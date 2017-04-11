@@ -5,16 +5,16 @@
 $Database = Application::getDatabase();
 $Language = Application::getLanguage();
 
-$site_size = Application::get('PAGE.LIST_SIZE');
-$site_sort = Application::get('PAGE.LIST_SORT');
+$site_size = Application::get('USER.LIST_SIZE');
+$site_sort = Application::get('USER.LIST_SORT');
 
-$lastSite = ceil($Database->query(sprintf('SELECT COUNT(id) FROM %s', Page\Attribute::TABLE))->fetchColumn() / $site_size);
+$lastSite = ceil($Database->query(sprintf('SELECT COUNT(id) FROM %s', User\Attribute::TABLE))->fetchColumn() / $site_size);
 
 $currentSite = HTTP::GET('site') ?? 1;
 $currentSite = abs(intval($currentSite));
 
 if($currentSite < 1 OR ($currentSite > $lastSite AND $lastSite > 0)) {
-	Application::exit(404);
+	Application::error404();
 }
 
 #===============================================================================
@@ -22,35 +22,31 @@ if($currentSite < 1 OR ($currentSite > $lastSite AND $lastSite > 0)) {
 #===============================================================================
 try {
 	$execSQL = "SELECT id FROM %s ORDER BY {$site_sort} LIMIT ".(($currentSite-1) * $site_size).", {$site_size}";
-	$pageIDs = $Database->query(sprintf($execSQL, Page\Attribute::TABLE))->fetchAll($Database::FETCH_COLUMN);
+	$userIDs = $Database->query(sprintf($execSQL, User\Attribute::TABLE))->fetchAll($Database::FETCH_COLUMN);
 
-	foreach($pageIDs as $pageID) {
+	foreach($userIDs as $userID) {
 		try {
-			$Page = Page\Factory::build($pageID);
-			$User = User\Factory::build($Page->attr('user'));
+			$User = User\Factory::build($userID);
+			$ItemTemplate = generateUserItemTemplate($User);
 
-			$ItemTemplate = generatePageItemTemplate($Page, $User);
-
-			$pages[] = $ItemTemplate;
-		}
-		catch(Page\Exception $Exception){}
-		catch(User\Exception $Exception){}
+			$users[] = $ItemTemplate;
+		} catch(User\Exception $Exception){}
 	}
 
-	$ListTemplate = Template\Factory::build('page/list');
+	$ListTemplate = Template\Factory::build('user/list');
 	$ListTemplate->set('PAGINATION', [
 		'THIS' => $currentSite,
 		'LAST' => $lastSite,
-		'HTML' => generatePageNaviTemplate($currentSite)
+		'HTML' => generateUserNaviTemplate($currentSite)
 	]);
 	$ListTemplate->set('LIST', [
-		'PAGES' => $pages ?? []
+		'USERS' => $users ?? []
 	]);
 
 	$MainTemplate = Template\Factory::build('main');
 	$MainTemplate->set('HTML', $ListTemplate);
 	$MainTemplate->set('HEAD', [
-		'NAME' => $Language->text('title_page_overview', $currentSite)
+		'NAME' => $Language->text('title_user_overview', $currentSite)
 	]);
 
 	echo $MainTemplate;
@@ -60,6 +56,6 @@ try {
 # CATCH: Template\Exception
 #===============================================================================
 catch(Template\Exception $Exception) {
-	$Exception->defaultHandler();
+	Application::exit($Exception->getMessage());
 }
 ?>
