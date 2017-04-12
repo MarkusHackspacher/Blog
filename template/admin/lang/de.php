@@ -106,13 +106,26 @@ $LANGUAGE['sure'] = 'Bist du sicher?';
 #===============================================================================
 # Labels
 #===============================================================================
-$LANGUAGE['LABEL_SLUG'] = 'Slug';
-$LANGUAGE['LABEL_USER'] = 'Benutzer';
-$LANGUAGE['LABEL_NAME'] = 'Titel';
-$LANGUAGE['LABEL_INSERT'] = 'Erstellt';
-$LANGUAGE['LABEL_UPDATE'] = 'Bearbeitet';
-$LANGUAGE['LABEL_FULLNAME'] = 'Name';
-$LANGUAGE['LABEL_MAILADDR'] = 'E-Mail';
-$LANGUAGE['LABEL_USERNAME'] = 'Username';
-$LANGUAGE['LABEL_PASSWORD'] = 'Passwort';
+$LANGUAGE['label_slug'] = 'Slug';
+$LANGUAGE['label_user'] = 'Benutzer';
+$LANGUAGE['label_name'] = 'Titel';
+$LANGUAGE['label_insert'] = 'Erstellt';
+$LANGUAGE['label_update'] = 'Bearbeitet';
+$LANGUAGE['label_fullname'] = 'Name';
+$LANGUAGE['label_mailaddr'] = 'E-Mail';
+$LANGUAGE['label_username'] = 'Username';
+$LANGUAGE['label_password'] = 'Passwort';
+
+#===============================================================================
+# Markdown
+#===============================================================================
+$LANGUAGE['markdown_bold'] = 'Fett';
+$LANGUAGE['markdown_italic'] = 'Kursiv';
+$LANGUAGE['markdown_heading'] = 'Überschrift';
+$LANGUAGE['markdown_link'] = 'Link';
+$LANGUAGE['markdown_image'] = 'Bild';
+$LANGUAGE['markdown_code'] = 'Codeblock';
+$LANGUAGE['markdown_quote'] = 'Zitat';
+$LANGUAGE['markdown_list_ul'] = 'Liste [ungeordnet]';
+$LANGUAGE['markdown_list_ol'] = 'Liste [geordnet]';
 ?>

@@ -21,15 +21,14 @@ spl_autoload_register(function($classname) {
 			      'Symfony/Component/Yaml/Yaml',
 			      'Composer/Autoload/ClassLoader');
 	if (!in_array($classname, $exclude_list)) {
-	        require_once "namespace/{$classname}.php";
+	        require "namespace/{$classname}.php";
 	}
 });
 #===============================================================================
 # Exception handler for non-caught exceptions
 #===============================================================================
-set_exception_handler(function($Exception) {
-	http_response_code(503);
-	exit($Exception->getMessage());
+set_exception_handler(function(Exception $Exception) {
+	Application::exit($Exception->getMessage());
 });
 
 #===============================================================================
@@ -40,7 +39,7 @@ HTTP::init($_GET, $_POST, $_FILES, TRUE);
 #===============================================================================
 # Include configuration
 #===============================================================================
-require_once 'configuration.php';
+require 'configuration.php';
 
 #===============================================================================
 # Overwrite configuration if admin
@@ -70,7 +69,7 @@ if(defined('ADMINISTRATION') AND ADMINISTRATION === TRUE) {
 #===============================================================================
 # Include functions
 #===============================================================================
-require_once 'functions.php';
+require 'functions.php';
 
 #===============================================================================
 # TRY: PDOException
@@ -87,8 +86,7 @@ try {
 # CATCH: PDOException
 #===============================================================================
 catch(PDOException $Exception) {
-	http_response_code(503);
-	exit("PDO database connection error: {$Exception->getMessage()}");
+	Application::exit($Exception->getMessage());
 }
 
 #===============================================================================
@@ -132,8 +130,7 @@ if(Application::get('CORE.SEND_304') === TRUE AND !defined('ADMINISTRATION')) {
 		$HTTP_IF_NONE_MATCH = rtrim($HTTP_IF_NONE_MATCH, '-gzip');
 
 		if($HTTP_IF_NONE_MATCH === $HTTP_ETAG_IDENTIFIER) {
-			http_response_code(304);
-			exit();
+			Application::exit(NULL, 304);
 		}
 	}
 }

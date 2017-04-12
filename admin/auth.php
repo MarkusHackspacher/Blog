@@ -7,7 +7,7 @@ define('ADMINISTRATION', TRUE);
 #===============================================================================
 # INCLUDE: Main configuration
 #===============================================================================
-require_once '../core/application.php';
+require '../core/application.php';
 
 #===============================================================================
 # IF: Already authenticated
@@ -60,9 +60,7 @@ else {
 try {
 	$AuthTemplate = Template\Factory::build('auth');
 	$AuthTemplate->set('FORM', [
-		'INFO' => [
-			'LIST' => $messages ?? [],
-		],
+		'INFO' => $messages ?? [],
 		'DATA' => [
 			'USERNAME' => HTTP::POST('username'),
 			'PASSWORD' => HTTP::POST('password'),

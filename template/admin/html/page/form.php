@@ -16,7 +16,7 @@
 		</section>
 		<section>
 			<div class="form-icon-flex"><i class="fa fa-user"></i></div>
-			<div class="form-label-flex"><label for="L_USER"><?=$Language->template('LABEL_USER')?></label></div>
+			<div class="form-label-flex"><label for="L_USER"><?=$Language->template('label_user')?></label></div>
 			<div class="form-field-flex">
 				<select id="L_USER" name="user">
 					<?php foreach($FORM['USER_LIST'] as $user): ?>
@@ -29,24 +29,24 @@
 	<section class="flex flex-responsive">
 		<section>
 			<div class="form-icon-flex"><i class="fa fa-file-text-o"></i></div>
-			<div class="form-label-flex"><label for="L_NAME"><?=$Language->template('LABEL_NAME')?></label></div>
+			<div class="form-label-flex"><label for="L_NAME"><?=$Language->template('label_name')?></label></div>
 			<div class="form-field-flex"><input id="L_NAME" name="name" value="<?=escapeHTML($FORM['DATA']['NAME'])?>" /></div>
 		</section>
 		<section>
 			<div class="form-icon-flex"><i class="fa fa-link"></i></div>
-			<div class="form-label-flex"><label for="L_SLUG"><?=$Language->template('LABEL_SLUG')?></label></div>
+			<div class="form-label-flex"><label for="L_SLUG"><?=$Language->template('label_slug')?></label></div>
 			<div class="form-field-flex"><input id="L_SLUG" name="slug" value="<?=escapeHTML($FORM['DATA']['SLUG'])?>" /></div>
 		</section>
 	</section>
 	<section class="flex flex-responsive">
 		<section>
 			<div class="form-icon-flex"><i class="fa fa-clock-o"></i></div>
-			<div class="form-label-flex"><label for="L_TIME_INSERT"><?=$Language->template('LABEL_INSERT')?></label></div>
+			<div class="form-label-flex"><label for="L_TIME_INSERT"><?=$Language->template('label_insert')?></label></div>
 			<div class="form-field-flex"><input id="L_TIME_INSERT" name="time_insert" placeholder="[YYYY-MM-DD HH:II:SS]" value="<?=escapeHTML($FORM['DATA']['TIME_INSERT'])?>" /></div>
 		</section>
 		<section>
 			<div class="form-icon-flex"><i class="fa fa-clock-o"></i></div>
-			<div class="form-label-flex"><label for="L_TIME_UPDATE"><?=$Language->template('LABEL_UPDATE')?></label></div>
+			<div class="form-label-flex"><label for="L_TIME_UPDATE"><?=$Language->template('label_update')?></label></div>
 			<div class="form-field-flex"><input id="L_TIME_UPDATE" name="time_update" placeholder="<?=escapeHTML($FORM['DATA']['TIME_UPDATE'] ? $FORM['DATA']['TIME_UPDATE'] : '[CURRENT_TIMESTAMP]')?>" value="" /></div>
 		</section>
 	</section>
@@ -62,15 +62,15 @@
 	</section>
 	<section class="flex flex-padding background">
 		<ul class="button-list markdown">
-			<li onmousedown="markdownReplace('bold');" class="fa fa-bold" title="Bold"></li>
-			<li onmousedown="markdownReplace('italic');" class="fa fa-italic" title="Italic"></li>
-			<li onmousedown="markdownReplace('header');" class="fa fa-header" title="Heading"></li>
-			<li onmousedown="markdownReplace('link');" class="fa fa-link" title="Link"></li>
-			<li onmousedown="markdownReplace('image');" class="fa fa-picture-o" title="Image"></li>
-			<li onmousedown="markdownReplace('code');" class="fa fa-code" title="Code"></li>
-			<li onmousedown="markdownReplace('quote');" class="fa fa-quote-right" title="Quote"></li>
-			<li onmousedown="markdownReplace('list_ul');" class="fa fa-list-ul" title="List [unordered]"></li>
-			<li onmousedown="markdownReplace('list_ol');" class="fa fa-list-ol" title="List [ordered]"></li>
+			<li onmousedown="markdownReplace('bold');" class="fa fa-bold" title="<?=$Language->template('markdown_bold')?>"></li>
+			<li onmousedown="markdownReplace('italic');" class="fa fa-italic" title="<?=$Language->template('markdown_italic')?>"></li>
+			<li onmousedown="markdownReplace('heading');" class="fa fa-header" title="<?=$Language->template('markdown_heading')?>"></li>
+			<li onmousedown="markdownReplace('link');" class="fa fa-link" title="<?=$Language->template('markdown_link')?>"></li>
+			<li onmousedown="markdownReplace('image');" class="fa fa-picture-o" title="<?=$Language->template('markdown_image')?>"></li>
+			<li onmousedown="markdownReplace('code');" class="fa fa-code" title="<?=$Language->template('markdown_code')?>"></li>
+			<li onmousedown="markdownReplace('quote');" class="fa fa-quote-right" title="<?=$Language->template('markdown_quote')?>"></li>
+			<li onmousedown="markdownReplace('list_ul');" class="fa fa-list-ul" title="<?=$Language->template('markdown_list_ul')?>"></li>
+			<li onmousedown="markdownReplace('list_ol');" class="fa fa-list-ol" title="<?=$Language->template('markdown_list_ol')?>"></li>
 		</ul>
 	</section>
 <?php else: ?>
