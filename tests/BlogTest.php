@@ -1,5 +1,5 @@
 <?php
-require_once 'core/functions.php';
+# require_once 'core/functions.php';
 require_once 'core/application.php';
 
 class BlogTest extends PHPUnit\Framework\TestCase
