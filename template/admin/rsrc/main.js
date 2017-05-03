@@ -1,4 +1,20 @@
 //==============================================================================
+// Elements which contains the location of the previous and next site
+//==============================================================================
+var prev = document.getElementById("prev-site");
+var next = document.getElementById("next-site");
+
+//==============================================================================
+// Handle arrow keys and change the location to the desired direction
+//==============================================================================
+document.addEventListener("keyup", function(event) {
+	if(!event.ctrlKey && !event.shiftKey) {
+		(event.keyCode === 37 && prev) && (window.location.href = prev.getAttribute("href"));
+		(event.keyCode === 39 && next) && (window.location.href = next.getAttribute("href"));
+	}
+}, false);
+
+//==============================================================================
 // Markdown tags to replace
 //==============================================================================
 var markdownTags = {
@@ -101,5 +117,37 @@ addEventListener("DOMContentLoaded", function() {
 		document.getElementById("delete-button").onclick = function(e) {
 			return confirm(e.target.getAttribute('data-text'));
 		};
+	}
+}, false);
+
+//==============================================================================
+// Emoticon listener
+//==============================================================================
+addEventListener("DOMContentLoaded", function() {
+	if(document.getElementById("emoticon-list")) {
+		var list = document.getElementById("emoticon-list");
+		var items = list.getElementsByTagName("li");
+
+		for(var i = 0; i < items.length; ++i) {
+			items[i].onmousedown = function(e) {
+				emoticonReplace(e.target.getAttribute('data-emoticon'));
+			};
+		}
+	}
+}, false);
+
+//==============================================================================
+// Markdown listener
+//==============================================================================
+addEventListener("DOMContentLoaded", function() {
+	if(document.getElementById("markdown-list")) {
+		var list = document.getElementById("markdown-list");
+		var items = list.getElementsByTagName("li");
+
+		for(var i = 0; i < items.length; ++i) {
+			items[i].onmousedown = function(e) {
+				markdownReplace(e.target.getAttribute('data-markdown'));
+			};
+		}
 	}
 }, false);

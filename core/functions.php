@@ -90,6 +90,7 @@ function generateItemData(Item $Item): array {
 		'ID'  => $Item->getID(),
 		'URL' => $Item->getURL(),
 		'GUID' => $Item->getGUID(),
+		'ARGV' => $Item->getArguments(),
 
 		'PREV' => FALSE,
 		'NEXT' => FALSE,
@@ -108,6 +109,7 @@ function generateItemData(Item $Item): array {
 			'SLUG' => $Item->attr('slug'),
 			'NAME' => $Item->attr('name'),
 			'BODY' => $Item->attr('body'),
+			'ARGV' => $Item->attr('argv'),
 			'TIME_INSERT' => $Item->attr('time_insert'),
 			'TIME_UPDATE' => $Item->attr('time_update')
 		]
@@ -136,6 +138,7 @@ function generateUserItemData(User\Item $User): array {
 		'ID'  => $User->getID(),
 		'URL' => $User->getURL(),
 		'GUID' => $User->getGUID(),
+		'ARGV' => $User->getArguments(),
 
 		'PREV' => FALSE,
 		'NEXT' => FALSE,
@@ -152,6 +155,7 @@ function generateUserItemData(User\Item $User): array {
 		'ATTR' => [
 			'SLUG' => $User->attr('slug'),
 			'BODY' => $User->attr('body'),
+			'ARGV' => $User->attr('argv'),
 			'USERNAME' => $User->attr('username'),
 			'FULLNAME' => $User->attr('fullname'),
 			'MAILADDR' => $User->attr('mailaddr'),
@@ -303,6 +307,7 @@ function excerpt($string, $length = 500, $replace = ' […]') {
 	$string = removeHTML($string);
 	$string = removeDoubleLineBreaks($string);
 	$string = cut($string, $length, $replace);
+	$string = trim($string);
 	$string = nl2br($string);
 
 	return $string;
@@ -322,13 +327,17 @@ function description($string, $length = 200, $replace = ' […]') {
 #===============================================================================
 # Generate a valid slug URL part from a string
 #===============================================================================
-function makeSlugURL($string) {
-	$string = strtolower($string);
-	$string = str_replace(['ä', 'ö', 'ü', 'ß'], ['ae', 'oe', 'ue', 'ss'], $string);
-	$string = preg_replace('/[^a-zA-Z0-9\-]/', '-', $string);
-	$string = preg_replace('/-+/', '-', $string);
+function makeSlugURL($string, $separator = '-') {
+	$string = strtr(mb_strtolower($string), [
+		'ä' => 'ae',
+		'ö' => 'oe',
+		'ü' => 'ue',
+		'ß' => 'ss'
+	]);
 
-	return trim($string, '-');
+	$string = preg_replace('#[^[:lower:][:digit:]]+#', $separator, $string);
+
+	return trim($string, $separator);
 }
 
 #===============================================================================

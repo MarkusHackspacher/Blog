@@ -5,7 +5,7 @@
 	<meta name="referrer" content="origin-when-crossorigin" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<link rel="stylesheet" href="<?=Application::getTemplateURL('rsrc/main.css')?>" />
-	<script src="<?=Application::getTemplateURL('rsrc/main.js')?>"></script>
+	<script defer src="<?=Application::getTemplateURL('rsrc/main.js')?>"></script>
 	<title><?=escapeHTML($NAME)?> | Administration</title>
 </head>
 <body>
@@ -45,7 +45,11 @@
 			<?=$HTML?>
 		</main>
 		<footer id="main-footer">
-			<i class="fa fa-bug"></i> Report bugs via email to <a href="mailto:Thomas Lange <code@nerdmind.de>">code@nerdmind.de</a>!
+			<ul>
+				<li><i class="fa fa-github-square"></i><a href="https://github.com/Nerdmind/Blog/releases" target="_blank">Releases</a></li>
+				<li><i class="fa fa-book"></i><a href="https://github.com/Nerdmind/Blog/wiki" target="_blank">Documentation</a></li>
+				<li><i class="fa fa-bug"></i><a href="mailto:Thomas Lange <code@nerdmind.de>">Bugreport</a></li>
+			</ul>
 		</footer>
 	</section>
 </body>
