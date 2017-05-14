@@ -43,8 +43,6 @@ class Application {
 			$username = self::get('DATABASE.USERNAME');
 			$password = self::get('DATABASE.PASSWORD');
 
-			self::set('DATABASE.PASSWORD', NULL);
-
 			self::$Database = new Database($hostname, $basename, $username, $password);
 		}
 
@@ -56,8 +54,11 @@ class Application {
 	#===============================================================================
 	public static function getLanguage($force = FALSE): Language {
 		if(!self::$Language instanceof Language OR $force === TRUE) {
+			$template_name = self::get('TEMPLATE.NAME');
+			$template_lang = self::get('TEMPLATE.LANG');
+
 			$Language = new Language(self::get('CORE.LANGUAGE'));
-			$Language->loadLanguage(ROOT.'template/'.self::get('TEMPLATE.NAME').'/lang/'.self::get('TEMPLATE.LANG').'.php');
+			$Language->loadLanguage(sprintf(ROOT.'template/%s/lang/%s.php', $template_name, $template_lang));
 			self::$Language = $Language;
 		}
 
