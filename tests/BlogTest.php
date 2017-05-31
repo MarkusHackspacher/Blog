@@ -57,10 +57,12 @@ class BlogTest extends PHPUnit\Framework\TestCase
 
         $test = generatePageItemTemplate($Page, $User);
         $testpage = $test->get('PAGE');
-        $this->assertEquals(1 , $testpage['ID']);
+        # print_r($testpage);
+        $this->assertEquals(1 , $testpage['ATTR']['ID']);
         $this->assertEquals('https://localhost:8080/page/example-page/' , $testpage['URL']);
         $testuser = $test->get('USER');
-        $this->assertEquals(1 , $testuser['ID']);
+        # print_r($testuser);
+        $this->assertEquals(1 , $testuser['ATTR']['ID']);
         $this->assertEquals('https://localhost:8080/user/change-me/' , $testuser['URL']);
 
         $test = generateUserItemTemplate($User);
@@ -69,9 +71,9 @@ class BlogTest extends PHPUnit\Framework\TestCase
         $User = User\Factory::build($Post->attr('user'));
         $test = generatePostItemTemplate($Post, $User);
 
-        $page_data = generatePageItemData($Page);
-        $post_data = generatePostItemData($Post);
-        $user_data = generateUserItemData($User);
+        $page_data = generateItemTemplateData($Page);
+        $post_data = generateItemTemplateData($Post);
+        $user_data = generateItemTemplateData($User);
     }
 
     public function testmakeSlugURL()
