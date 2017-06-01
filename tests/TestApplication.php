@@ -1,7 +1,7 @@
 <?php
 require_once 'core/application.php';
 
-class TestApplication extends PHPUnit\Framework\TestCase
+class ApplicationTest extends PHPUnit\Framework\TestCase
 # Example from https://github.com/travis-ci-examples/php
 {
     public function testset_exception_handler()
@@ -10,3 +10,4 @@ class TestApplication extends PHPUnit\Framework\TestCase
         $this->assertEquals(1, $test);
     }
 }
+?>
