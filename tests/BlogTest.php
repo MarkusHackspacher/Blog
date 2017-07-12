@@ -1,5 +1,4 @@
 <?php
-# require_once 'core/functions.php';
 require_once 'core/application.php';
 
 class BlogTest extends PHPUnit\Framework\TestCase
@@ -76,19 +75,19 @@ class BlogTest extends PHPUnit\Framework\TestCase
         $user_data = generateItemTemplateData($User);
     }
 
-    public function testmakeSlugURL()
+    public function testgenerateSlug()
     {
-        $test = makeSlugURL('http://Test.de');
+        $test = generateSlug('http://Test.de');
         $this->assertEquals('http-test-de', $test);
-        $test = makeSlugURL('http://äüö.de');
+        $test = generateSlug('http://äüö.de');
         $this->assertEquals('http-aeueoe-de', $test);
-        $this->assertEquals('a-simple-slug-test', makeSlugURL('A simple Slug Test!'));
+        $this->assertEquals('a-simple-slug-test', generateSlug('A simple Slug Test!'));
         $this->assertEquals('dies-ist-ein-supercooler-blogpost',
-                            makeSlugURL('Dies ist ein supercooler Blogpost!'));
-        $this->assertEquals('se-r-sumer-orateur', makeSlugURL('se résumer orateur:'));
-        $this->assertEquals('', makeSlugURL('           '));
-        $this->assertEquals('u-z', makeSlugURL('ûûûuûûû  ^z')); 
-        $this->assertEquals('', makeSlugURL('ûôûôûôûââ')); 
+                            generateSlug('Dies ist ein supercooler Blogpost!'));
+        $this->assertEquals('se-r-sumer-orateur', generateSlug('se résumer orateur:'));
+        $this->assertEquals('', generateSlug('           '));
+        $this->assertEquals('u-z', generateSlug('ûûûuûûû  ^z')); 
+        $this->assertEquals('', generateSlug('ûôûôûôûââ')); 
     }
 
     public function testDBfetchHello()
