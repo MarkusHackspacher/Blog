@@ -49,23 +49,15 @@ $LANGUAGE['overview_post_desc'] = 'Hier siehst du alle vorhandenen Beiträge.';
 $LANGUAGE['overview_user_desc'] = 'Hier siehst du alle vorhandenen Benutzer.';
 
 #===============================================================================
-# Dashboard overview text
+# Dashboard
 #===============================================================================
 $LANGUAGE['overview_dashboard_text'] = 'Dashboard';
-
-#===============================================================================
-# Dashboard overview text
-#===============================================================================
 $LANGUAGE['overview_dashboard_desc'] = 'Willkommen im Administrationsbereich. Hier kannst du deine Inhalte verwalten.';
 
 #===============================================================================
-# Database overview text
+# Database
 #===============================================================================
 $LANGUAGE['overview_database_text'] = 'Datenbank';
-
-#===============================================================================
-# Database overview text
-#===============================================================================
 $LANGUAGE['overview_database_desc'] = 'Datenbankoperationen mit SQL-Befehlen durchführen.';
 
 #===============================================================================
@@ -109,6 +101,12 @@ $LANGUAGE['404_heading_desc'] = 'Die angeforderte Ressource konnte auf diesem Se
 $LANGUAGE['sure'] = 'Bist du sicher?';
 
 #===============================================================================
+# Login and logout
+#===============================================================================
+$LANGUAGE['login'] = 'Einloggen';
+$LANGUAGE['logout'] = 'Ausloggen';
+
+#===============================================================================
 # Labels
 #===============================================================================
 $LANGUAGE['label_slug'] = 'Slug';
@@ -120,6 +118,7 @@ $LANGUAGE['label_fullname'] = 'Name';
 $LANGUAGE['label_mailaddr'] = 'E-Mail';
 $LANGUAGE['label_username'] = 'Username';
 $LANGUAGE['label_password'] = 'Passwort';
+$LANGUAGE['label_language'] = 'Sprache';
 
 #===============================================================================
 # Markdown
