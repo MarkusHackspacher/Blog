@@ -34,7 +34,7 @@ class Application {
 	}
 
 	#===============================================================================
-	# Return singleton PDO database instance
+	# Return singleton Database instance
 	#===============================================================================
 	public static function getDatabase($force = FALSE): Database {
 		if(!self::$Database instanceof Database OR $force === TRUE) {
@@ -58,7 +58,9 @@ class Application {
 			$template_lang = self::get('TEMPLATE.LANG');
 
 			$Language = new Language(self::get('CORE.LANGUAGE'));
-			$Language->loadLanguage(sprintf(ROOT.'template/%s/lang/%s.php', $template_name, $template_lang));
+			$Language->load(sprintf(ROOT.'core/language/%s.php', Application::get('CORE.LANGUAGE')));
+			$Language->load(sprintf(ROOT.'template/%s/lang/%s.php', $template_name, $template_lang));
+
 			self::$Language = $Language;
 		}
 

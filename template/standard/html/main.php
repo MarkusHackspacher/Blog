@@ -52,20 +52,20 @@ $BLOGMETA_DESC = escapeHTML($BLOGMETA['DESC']);
 	<title><?="{$HEAD_NAME} | {$BLOGMETA_NAME} {$BLOGMETA_DESC}"?></title>
 </head>
 <body>
-	<section id="container">
+	<div id="container">
 		<header id="main-header">
-			<section>
+			<div>
 				<a href="<?=Application::getURL()?>" title="<?="{$BLOGMETA_NAME} {$BLOGMETA_DESC}"?>">
 					<img id="main-logo" src="<?=Application::getTemplateURL('rsrc/logo.png')?>" alt="<?=$BLOGMETA_NAME?>" />
 				</a>
-			</section>
+			</div>
 			<nav id="main-navi">
 				<label for="toogle-nav" id="toogle-nav-label" class="fa fa-bars"></label>
 				<input type="checkbox" id="toogle-nav" />
 				<ul>
 					<li>
-						<a href="<?=Application::getURL()?>" title="<?=$Language->template('navigation_home_desc', $BLOGMETA_NAME)?>">
-							<i class="fa fa-home"></i><?=$Language->template('navigation_home_text')?>
+						<a href="<?=Application::getURL()?>" title="<?=$Language->text('navigation_home_desc', $BLOGMETA_NAME)?>">
+							<i class="fa fa-home"></i><?=$Language->text('navigation_home_text')?>
 						</a>
 					</li>
 					<li>
@@ -84,8 +84,8 @@ $BLOGMETA_DESC = escapeHTML($BLOGMETA['DESC']);
 						</a>
 					</li>
 					<li>
-						<a href="<?=Application::getURL('search/')?>" title="<?=$Language->template('navigation_search_desc')?>">
-							<i class="fa fa-search"></i><?=$Language->template('navigation_search_text')?>
+						<a href="<?=Application::getURL('search/')?>" title="<?=$Language->text('navigation_search_desc')?>">
+							<i class="fa fa-search"></i><?=$Language->text('navigation_search_text')?>
 						</a>
 					</li>
 				</ul>
@@ -97,6 +97,6 @@ $BLOGMETA_DESC = escapeHTML($BLOGMETA['DESC']);
 		<footer id="main-footer">
 			&copy; <?=$BLOGMETA_NAME?>
 		</footer>
-	</section>
+	</div>
 </body>
 </html>
