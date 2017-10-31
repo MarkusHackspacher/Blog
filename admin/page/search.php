@@ -8,20 +8,23 @@ define('AUTHENTICATION', TRUE);
 #===============================================================================
 # INCLUDE: Initialization
 #===============================================================================
-require '../core/application.php';
+require '../../core/application.php';
 
 #===============================================================================
-# Execute database command(s)
+# IF: Handle search request
 #===============================================================================
-if(HTTP::issetPOST(['token' => Application::getSecurityToken()], 'command')) {
-	try {
-		$Statement = $Database->query(HTTP::POST('command'));
+if($search = HTTP::GET('q')) {
+	if($pageIDs = Page\Item::getSearchResultIDs($search, $Database)) {
+		foreach($pageIDs as $pageID) {
+			try {
+				$Page = Page\Factory::build($pageID);
+				$User = User\Factory::build($Page->attr('user'));
 
-		do {
-			$result[] = print_r($Statement->fetchAll(), TRUE);
-		} while($Statement->nextRowset());
-	} catch(PDOException $Exception) {
-		$messages[] = $Exception->getMessage();
+				$pages[] = generatePageItemTemplate($Page, $User);
+			}
+			catch(Page\Exception $Exception){}
+			catch(User\Exception $Exception){}
+		}
 	}
 }
 
@@ -29,17 +32,14 @@ if(HTTP::issetPOST(['token' => Application::getSecurityToken()], 'command')) {
 # TRY: Template\Exception
 #===============================================================================
 try {
-	$DatabaseTemplate = Template\Factory::build('database');
-	$DatabaseTemplate->set('FORM', [
-		'INFO' => $messages ?? [],
-		'TOKEN' => Application::getSecurityToken(),
-		'RESULT' => implode(NULL, $result ?? []),
-		'COMMAND' => HTTP::POST('command'),
-	]);
+	$SearchTemplate = Template\Factory::build('page/search');
+	$SearchTemplate->set('QUERY', $search);
+	$SearchTemplate->set('PAGES', $pages ?? []);
 
 	$MainTemplate = Template\Factory::build('main');
-	$MainTemplate->set('NAME', 'SQL');
-	$MainTemplate->set('HTML', $DatabaseTemplate);
+	$MainTemplate->set('NAME', $Language->text('title_page_search'));
+	$MainTemplate->set('HTML', $SearchTemplate);
+
 	echo $MainTemplate;
 }
 

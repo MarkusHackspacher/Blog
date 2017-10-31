@@ -67,6 +67,10 @@ try {
 			'OG_IMAGES' => $User->getFiles()
 		]);
 
+		# Get access to the current item data from main template
+		$MainTemplate->set('TYPE', 'USER');
+		$MainTemplate->set('USER', $user_data);
+
 		echo $MainTemplate;
 	}
 
@@ -96,3 +100,4 @@ catch(User\Exception $Exception) {
 		Application::error404();
 	}
 }
+?>
