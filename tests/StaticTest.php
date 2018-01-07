@@ -34,9 +34,9 @@ class StaticTest extends PHPUnit\Framework\TestCase
         $this->assertEquals('&lt;script&gt;alert(&quot;XSS&quot;);&lt;/script&gt;', $test);
     }
 
-    public function testcut()
+    public function testtruncate()
     {
-        $test = cut('This is just a <strong>test</strong> string!', 20);
+        $test = truncate('This is just a <strong>test</strong> string!', 20);
         $this->assertEquals('This is just a < […]', $test);
     }
 
