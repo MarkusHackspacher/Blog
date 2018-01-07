@@ -56,8 +56,8 @@ $configuration = [
 	'TEMPLATE.LANG' => 'en',
 	'ADMIN.TEMPLATE' => 'admin',
 	'ADMIN.LANGUAGE' => 'en',
-	'PATHINFO.PROT' => $_SERVER['REQUEST_SCHEME'],
-	'PATHINFO.HOST' => $_SERVER['HTTP_HOST'],
+	'PATHINFO.PROT' => $_SERVER['REQUEST_SCHEME'] ?? 'https',
+	'PATHINFO.HOST' => $_SERVER['HTTP_HOST'] ?? 'localhost',
 	'PATHINFO.BASE' => '',
 	'PAGE.DIRECTORY' => 'page',
 	'POST.DIRECTORY' => 'post',
@@ -98,7 +98,7 @@ foreach($configuration as $name => $value) {
 require 'configuration.php';
 
 #===============================================================================
-# Overwrite configuration if admin
+# Override configuration if admin
 #===============================================================================
 if(defined('ADMINISTRATION') AND ADMINISTRATION === TRUE) {
 
@@ -115,7 +115,7 @@ if(defined('ADMINISTRATION') AND ADMINISTRATION === TRUE) {
 	}
 
 	#===========================================================================
-	# Overwrite configuration
+	# Override configuration
 	#===========================================================================
 	Application::set('CORE.LANGUAGE', Application::get('ADMIN.LANGUAGE'));
 	Application::set('TEMPLATE.NAME', Application::get('ADMIN.TEMPLATE'));
