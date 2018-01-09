@@ -8,9 +8,9 @@ class StaticTest extends PHPUnit\Framework\TestCase
     public function testexcerpt()
     {
         $test = excerpt('abcdefg', 3);
-        $this->assertEquals('abcdefg', $test);
+        $this->assertEquals('[…]', $test);
         $test = excerpt('abcdefg abcdef abcde', 3);
-        $this->assertEquals('abcdefg abcdef abcde', $test);
+        $this->assertEquals('[…]', $test);
         $test = excerpt('Simple test string.', 10);
         $this->assertEquals('Simple  […]', $test);
         $test = excerpt('Simple longer <br />test string.');
