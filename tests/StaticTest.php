@@ -8,15 +8,19 @@ class StaticTest extends PHPUnit\Framework\TestCase
     public function testexcerpt()
     {
         $test = excerpt('abcdefg', 3);
-        $this->assertEquals('abcdefg', $test);
+        $this->assertEquals('[…]', $test);
         $test = excerpt('abcdefg abcdef abcde', 3);
-        $this->assertEquals('abcdefg abcdef abcde', $test);
+        $this->assertEquals('[…]', $test);
         $test = excerpt('Simple test string.', 10);
-        $this->assertEquals('Simple  […]', $test);
+        $this->assertEquals('Simple […]', $test);
+    }
+
+    public function testexcerptlong()
+    {
         $test = excerpt('Simple longer <br />test string.');
         $this->assertEquals('Simple longer test string.', $test);
         $test = excerpt('This is just a <strong>test</strong> string!', 20);
-        $this->assertEquals('This is just a test  […]', $test);
+        $this->assertEquals('This is just a test […]', $test);
 
     }
 
@@ -37,7 +41,9 @@ class StaticTest extends PHPUnit\Framework\TestCase
     public function testtruncate()
     {
         $test = truncate('This is just a <strong>test</strong> string!', 20);
-        $this->assertEquals('This is just a < […]', $test);
+        $this->assertEquals('This is just a <', $test);
+        $test = truncate('This is just a <strong>test</strong> string!', 10);
+        $this->assertEquals('This is', $test);
     }
 
     # Parse emoticons to HTML encoded unicode characters
