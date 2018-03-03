@@ -4,7 +4,7 @@
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 #                                                                              #
 # This file brings the application up and defines default configuration values #
-# for the application which can be overwritten in configuration.php.           #
+# for the application which can be overridden in configuration.php.            #
 #                                                                              #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 
@@ -38,7 +38,7 @@ set_exception_handler(function(Throwable $Exception) {
 HTTP::init($_GET, $_POST, $_FILES, TRUE);
 
 #===============================================================================
-# Default configuration (can be overwritten in configuration.php)
+# Default configuration (can be overridden in configuration.php)
 #===============================================================================
 $configuration = [
 	'CORE.LANGUAGE' => 'en',
@@ -76,6 +76,9 @@ $configuration = [
 	'PAGE.DESCRIPTION_SIZE' => 200,
 	'POST.DESCRIPTION_SIZE' => 200,
 	'USER.DESCRIPTION_SIZE' => 200,
+	'PAGE.SINGLE_REDIRECT' => FALSE,
+	'POST.SINGLE_REDIRECT' => FALSE,
+	'USER.SINGLE_REDIRECT' => FALSE,
 	'PAGE.LIST_SORT' => 'time_insert DESC',
 	'POST.LIST_SORT' => 'time_insert DESC',
 	'USER.LIST_SORT' => 'time_insert DESC',
