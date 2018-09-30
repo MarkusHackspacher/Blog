@@ -52,13 +52,13 @@ class StaticTest extends PHPUnit\Framework\TestCase
         $test = parseEmoticons('This :D is ;) just :) a test :X string 8) ! :|');
         $this->assertEquals('This <span title="Smiling face with open mouth">&#x1F603;</span> is <span title="Winking face">&#x1F609;</span> just <span title="Smiling face with smiling eyes">&#x1F60A;</span> a test <span title="Dizzy face">&#x1F635;</span> string <span title="Smiling face with sunglasses">&#x1F60E;</span> ! <span title="Neutral face">&#x1F610;</span>', $test);
         $test = parseEmoticons(':)');
-        $this->assertEquals(' <span title="Smiling face with smiling eyes">&#x1F60A;</span>', $test);
+        $this->assertEquals('<span title="Smiling face with smiling eyes">&#x1F60A;</span>', $test);
         $test = parseEmoticons(':(');
-        $this->assertEquals(' <span title="Disappointed face">&#x1F61E;</span>', $test);
+        $this->assertEquals('<span title="Disappointed face">&#x1F61E;</span>', $test);
         $test = parseEmoticons(':D');
-        $this->assertEquals(' <span title="Smiling face with open mouth">&#x1F603;</span>', $test);
+        $this->assertEquals('<span title="Smiling face with open mouth">&#x1F603;</span>', $test);
         $test = parseEmoticons(':P');
-        $this->assertEquals(' <span title="Face with stuck-out tongue">&#x1F61B;</span>', $test);
+        $this->assertEquals('<span title="Face with stuck-out tongue">&#x1F61B;</span>', $test);
     }
 
 
