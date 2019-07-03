@@ -33,7 +33,7 @@ Application::set('DATABASE.PASSWORD', '');
 #===============================================================================
 # Template configuration
 #===============================================================================
-Application::set('TEMPLATE.NAME', 'standard');
+Application::set('TEMPLATE.NAME', 'default');
 Application::set('TEMPLATE.LANG', Application::get('CORE.LANGUAGE'));
 
 #===============================================================================
