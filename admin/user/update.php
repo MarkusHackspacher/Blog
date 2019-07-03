@@ -30,8 +30,7 @@ try {
 
 		if(HTTP::issetPOST(['token' => Application::getSecurityToken()])) {
 			try {
-				if($Attribute->databaseUPDATE($Database)) {
-				}
+				$Attribute->databaseUPDATE($Database);
 			} catch(PDOException $Exception) {
 				$messages[] = $Exception->getMessage();
 			}
@@ -42,9 +41,9 @@ try {
 		}
 	}
 
-#===============================================================================
-# TRY: Template\Exception
-#===============================================================================
+	#===============================================================================
+	# TRY: Template\Exception
+	#===============================================================================
 	try {
 		$FormTemplate = Template\Factory::build('user/form');
 		$FormTemplate->set('FORM', [
@@ -63,9 +62,9 @@ try {
 		echo $MainTemplate;
 	}
 
-#===============================================================================
-# CATCH: Template\Exception
-#===============================================================================
+	#===============================================================================
+	# CATCH: Template\Exception
+	#===============================================================================
 	catch(Template\Exception $Exception) {
 		Application::exit($Exception->getMessage());
 	}
