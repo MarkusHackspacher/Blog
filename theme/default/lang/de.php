@@ -45,7 +45,7 @@ $LANGUAGE['user_main_heading_desc'] = 'Bisher wurden von »%s« insgesamt <b>%d<
 # Search request title and description
 #===============================================================================
 $LANGUAGE['search_base_heading_text'] = 'Volltextsuche';
-$LANGUAGE['search_base_heading_desc'] = 'Wenn du einen bestimmten <strong>Beitrag</strong> suchst, dann kann dir die <a href="https://dev.mysql.com/doc/refman/5.5/en/fulltext-boolean.html" target="_blank">Volltext-Suchfunktion</a> der MySQL-Datenbank bestimmt weiterhelfen.';
+$LANGUAGE['search_base_heading_desc'] = 'Wenn du einen bestimmten <strong>Beitrag</strong> suchst, dann kann dir die <a href="https://dev.mysql.com/doc/refman/8.0/en/fulltext-boolean.html" target="_blank">Volltext-Suchfunktion</a> der MySQL-Datenbank bestimmt weiterhelfen.';
 
 #===============================================================================
 # Search result title and description
@@ -54,9 +54,22 @@ $LANGUAGE['search_result_heading_text'] = 'Suchergebnisse für <code>%s</code>';
 $LANGUAGE['search_result_heading_desc'] = 'Herzlichen Glückwunsch, deine Suchanfrage scheint erfolgreich gewesen zu sein!';
 
 #===============================================================================
+# Categories
+#===============================================================================
+$LANGUAGE['category_list_title'] = '[Seite: <b>%d</b>] Hier siehst du alle Kategorien und ihre Unterkategorien in sortierter Reihenfolge.';
+$LANGUAGE['category_posts_page'] = '<strong>Seite:</strong> %d';
+$LANGUAGE['category_list_empty'] = 'Die Kategorie-Liste ist leer. Es wurden noch keine Kategorien angelegt.';
+$LANGUAGE['category_empty'] = 'Diese Kategorie ist leer. Es wurden noch keine Beiträge hier veröffentlicht.';
+
+#===============================================================================
 # Search form placeholder text
 #===============================================================================
 $LANGUAGE['search_form_placeholder'] = 'Suchbegriff eingeben …';
+
+#===============================================================================
+# Feed
+#===============================================================================
+$LANGUAGE['feed_subscribe'] = 'Feed abonnieren';
 
 #===============================================================================
 # Error 403
@@ -69,4 +82,3 @@ $LANGUAGE['403_heading_desc'] = 'Der Zugriff auf diese Ressource wurde dir verwe
 #===============================================================================
 $LANGUAGE['404_heading_text'] = 'Nicht gefunden';
 $LANGUAGE['404_heading_desc'] = 'Die angeforderte Ressource konnte nicht gefunden werden.';
-?>

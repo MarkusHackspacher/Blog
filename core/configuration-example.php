@@ -13,6 +13,8 @@
 #                                                                              #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 
+# setlocale(LC_TIME, ['en_US.utf8', 'en_US']);
+
 Application::set('CORE.LANGUAGE', 'en');
 Application::set('BLOGMETA.NAME', 'My Techblog');
 Application::set('BLOGMETA.DESC', '[a creative description]');
@@ -25,4 +27,3 @@ Application::set('DATABASE.PASSWORD', '');
 Application::set('TEMPLATE.NAME', 'default');
 Application::set('TEMPLATE.LANG', Application::get('CORE.LANGUAGE'));
 Application::set('ADMIN.LANGUAGE', Application::get('CORE.LANGUAGE'));
-?>

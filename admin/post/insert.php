@@ -2,31 +2,43 @@
 #===============================================================================
 # DEFINE: Administration
 #===============================================================================
-define('ADMINISTRATION', TRUE);
-define('AUTHENTICATION', TRUE);
+const ADMINISTRATION = TRUE;
+const AUTHENTICATION = TRUE;
 
 #===============================================================================
 # INCLUDE: Initialization
 #===============================================================================
 require '../../core/application.php';
 
-$Attribute = new Post\Attribute();
+#===============================================================================
+# Get repositories
+#===============================================================================
+$CategoryRepository = Application::getRepository('Category');
+$PostRepository = Application::getRepository('Post');
+$UserRepository = Application::getRepository('User');
 
-if(HTTP::issetPOST('id', 'user', 'slug', 'name', 'body', 'argv', 'time_insert', 'time_update', 'insert')) {
-	$Attribute->set('id',   HTTP::POST('id') ? HTTP::POST('id') : FALSE);
-	$Attribute->set('user', HTTP::POST('user'));
-	$Attribute->set('slug', HTTP::POST('slug') ? HTTP::POST('slug') : generateSlug(HTTP::POST('name')));
-	$Attribute->set('name', HTTP::POST('name') ? HTTP::POST('name') : NULL);
-	$Attribute->set('body', HTTP::POST('body') ? HTTP::POST('body') : NULL);
-	$Attribute->set('argv', HTTP::POST('argv') ? HTTP::POST('argv') : NULL);
-	$Attribute->set('time_insert', HTTP::POST('time_insert') ?: date('Y-m-d H:i:s'));
-	$Attribute->set('time_update', HTTP::POST('time_update') ?: date('Y-m-d H:i:s'));
+#===============================================================================
+# Instantiate new Post entity
+#===============================================================================
+$Post = new ORM\Entities\Post;
+
+#===============================================================================
+# Check for insert request
+#===============================================================================
+if(HTTP::issetPOST('insert')) {
+	$Post->set('category', HTTP::POST('category') ?: NULL);
+	$Post->set('user', HTTP::POST('user'));
+	$Post->set('slug', HTTP::POST('slug') ?: generateSlug(HTTP::POST('name')));
+	$Post->set('name', HTTP::POST('name') ?: NULL);
+	$Post->set('body', HTTP::POST('body') ?: NULL);
+	$Post->set('argv', HTTP::POST('argv') ?: NULL);
+	$Post->set('time_insert', HTTP::POST('time_insert') ?: date('Y-m-d H:i:s'));
+	$Post->set('time_update', HTTP::POST('time_update') ?: date('Y-m-d H:i:s'));
 
 	if(HTTP::issetPOST(['token' => Application::getSecurityToken()])) {
 		try {
-			if($Attribute->databaseINSERT($Database)) {
-				HTTP::redirect(Application::getAdminURL('post/'));
-			}
+			$PostRepository->insert($Post);
+			HTTP::redirect(Application::getAdminURL('post/'));
 		} catch(PDOException $Exception) {
 			$messages[] = $Exception->getMessage();
 		}
@@ -38,42 +50,45 @@ if(HTTP::issetPOST('id', 'user', 'slug', 'name', 'body', 'argv', 'time_insert', 
 }
 
 #===============================================================================
-# TRY: Template\Exception
+# Generate user list
 #===============================================================================
-try {
-	$userIDs = $Database->query(sprintf('SELECT id FROM %s ORDER BY fullname ASC', User\Attribute::TABLE));
-
-	foreach($userIDs->fetchAll($Database::FETCH_COLUMN) as $userID) {
-		$User = User\Factory::build($userID);
-		$userAttributes[] = [
-			'ID' => $User->attr('id'),
-			'FULLNAME' => $User->attr('fullname'),
-			'USERNAME' => $User->attr('username'),
-		];
-	}
-
-	$FormTemplate = Template\Factory::build('post/form');
-	$FormTemplate->set('FORM', [
-		'TYPE' => 'INSERT',
-		'INFO' => $messages ?? [],
-		'DATA' => array_change_key_case($Attribute->getAll(), CASE_UPPER),
-		'USER_LIST' => $userAttributes ??  [],
-		'TOKEN' => Application::getSecurityToken()
-	]);
-
-	$InsertTemplate = Template\Factory::build('post/insert');
-	$InsertTemplate->set('HTML', $FormTemplate);
-
-	$MainTemplate = Template\Factory::build('main');
-	$MainTemplate->set('NAME', $Language->text('title_post_insert'));
-	$MainTemplate->set('HTML', $InsertTemplate);
-	echo $MainTemplate;
+foreach($UserRepository->getAll([], 'fullname ASC') as $User) {
+	$userList[] = [
+		'ID' => $User->getID(),
+		'FULLNAME' => $User->get('fullname'),
+		'USERNAME' => $User->get('username'),
+	];
 }
 
 #===============================================================================
-# CATCH: Template\Exception
+# Generate category list
 #===============================================================================
-catch(Template\Exception $Exception) {
-	Application::exit($Exception->getMessage());
+foreach($CategoryRepository->getAll([], 'name ASC') as $Category) {
+	$categoryList[] = [
+		'ID' => $Category->getID(),
+		'NAME' => $Category->get('name'),
+		'PARENT' => $Category->get('parent'),
+	];
 }
-?>
+
+#===============================================================================
+# Build document
+#===============================================================================
+$FormTemplate = Template\Factory::build('post/form');
+$FormTemplate->set('FORM', [
+	'TYPE' => 'INSERT',
+	'INFO' => $messages ?? [],
+	'DATA' => array_change_key_case($Post->getAll(), CASE_UPPER),
+	'USER_LIST' => $userList ??  [],
+	'CATEGORY_LIST' => $categoryList ?? [],
+	'CATEGORY_TREE' => generateCategoryDataTree($categoryList ?? []),
+	'TOKEN' => Application::getSecurityToken()
+]);
+
+$InsertTemplate = Template\Factory::build('post/insert');
+$InsertTemplate->set('HTML', $FormTemplate);
+
+$MainTemplate = Template\Factory::build('main');
+$MainTemplate->set('NAME', $Language->text('title_post_insert'));
+$MainTemplate->set('HTML', $InsertTemplate);
+echo $MainTemplate;

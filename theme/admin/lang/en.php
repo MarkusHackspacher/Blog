@@ -14,6 +14,12 @@
 $LANGUAGE['date_format'] = '[Y]-[M]-[D]';
 
 #===============================================================================
+# Theme color switch
+#===============================================================================
+$LANGUAGE['bright_colors'] = 'Bright colors';
+$LANGUAGE['dark_colors'] = 'Dark colors';
+
+#===============================================================================
 # Item last text
 #===============================================================================
 $LANGUAGE['last_post'] = 'Last post';
@@ -23,6 +29,7 @@ $LANGUAGE['last_user'] = 'Last user';
 #===============================================================================
 # Insert item description
 #===============================================================================
+$LANGUAGE['insert_category_desc'] = 'Here you can create a new category to categorize your posts.';
 $LANGUAGE['insert_page_desc'] = 'Here you can create and publish a new page.';
 $LANGUAGE['insert_post_desc'] = 'Here you can create and publish a new post.';
 $LANGUAGE['insert_user_desc'] = 'Here you can create and publish a new user.';
@@ -30,6 +37,7 @@ $LANGUAGE['insert_user_desc'] = 'Here you can create and publish a new user.';
 #===============================================================================
 # Update item description
 #===============================================================================
+$LANGUAGE['update_category_desc'] = 'Here you can edit an existing category and save the changes.';
 $LANGUAGE['update_page_desc'] = 'Here you can edit an existing page and save the changes.';
 $LANGUAGE['update_post_desc'] = 'Here you can edit an existing post and save the changes.';
 $LANGUAGE['update_user_desc'] = 'Here you can edit an existing user and save the changes.';
@@ -37,6 +45,7 @@ $LANGUAGE['update_user_desc'] = 'Here you can edit an existing user and save the
 #===============================================================================
 # Delete item description
 #===============================================================================
+$LANGUAGE['delete_category_desc'] = 'If you do not need this category anymore, you can permanently delete it by clicking the following button.';
 $LANGUAGE['delete_page_desc'] = 'If you do not need this page anymore, you can permanently delete it by clicking the following button.';
 $LANGUAGE['delete_post_desc'] = 'If you do not need this post anymore, you can permanently delete it by clicking the following button.';
 $LANGUAGE['delete_user_desc'] = 'If you do not need this user anymore, you can permanently delete it by clicking the following button.';
@@ -44,12 +53,13 @@ $LANGUAGE['delete_user_desc'] = 'If you do not need this user anymore, you can p
 #===============================================================================
 # Search item description
 #===============================================================================
-$LANGUAGE['search_page_desc'] = 'Here you can search a page with the <em>boolean full-text search</em> (see <a href="https://dev.mysql.com/doc/refman/5.6/en/fulltext-boolean.html">MySQL documentation</a>).';
-$LANGUAGE['search_post_desc'] = 'Here you can search a post with the <em>boolean full-text search</em> (see <a href="https://dev.mysql.com/doc/refman/5.6/en/fulltext-boolean.html">MySQL documentation</a>).';
+$LANGUAGE['search_page_desc'] = 'Here you can search a page with the <em>boolean full-text search</em> (see <a href="https://dev.mysql.com/doc/refman/8.0/en/fulltext-boolean.html">MySQL documentation</a>).';
+$LANGUAGE['search_post_desc'] = 'Here you can search a post with the <em>boolean full-text search</em> (see <a href="https://dev.mysql.com/doc/refman/8.0/en/fulltext-boolean.html">MySQL documentation</a>).';
 
 #===============================================================================
 # Item overview description
 #===============================================================================
+$LANGUAGE['overview_category_desc'] = 'Here you can see all existing categories in sorted order.';
 $LANGUAGE['overview_page_desc'] = 'Here you can see all existing pages.';
 $LANGUAGE['overview_post_desc'] = 'Here you can see all existing posts.';
 $LANGUAGE['overview_user_desc'] = 'Here you can see all existing users.';
@@ -130,6 +140,8 @@ $LANGUAGE['label_mailaddr'] = 'Email';
 $LANGUAGE['label_username'] = 'Username';
 $LANGUAGE['label_password'] = 'Password';
 $LANGUAGE['label_language'] = 'Language';
+$LANGUAGE['label_category'] = 'Category';
+$LANGUAGE['label_category_parent'] = 'Within';
 
 #===============================================================================
 # Markdown
@@ -143,4 +155,13 @@ $LANGUAGE['markdown_code'] = 'Code block';
 $LANGUAGE['markdown_quote'] = 'Quote';
 $LANGUAGE['markdown_list_ul'] = 'List [unordered]';
 $LANGUAGE['markdown_list_ol'] = 'List [ordered]';
-?>
+
+#===============================================================================
+# Migrations
+#===============================================================================
+$LANGUAGE['maintenance_mode'] = 'Maintenance mode';
+$LANGUAGE['migration_upgrade'] = 'A database schema migration is required!<br>The on-disk schema version is
+	<code>%d</code> but the application uses the higher schema version <code>%d</code>.';
+$LANGUAGE['migration_notice'] = 'The following commands will migrate the database schema from <code>%d</code> to <code>%d</code>.';
+$LANGUAGE['migration_successful'] = 'The following migrations were successful:';
+$LANGUAGE['migration_submit'] = 'Run migrations';

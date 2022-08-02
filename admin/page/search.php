@@ -2,8 +2,8 @@
 #===============================================================================
 # DEFINE: Administration
 #===============================================================================
-define('ADMINISTRATION', TRUE);
-define('AUTHENTICATION', TRUE);
+const ADMINISTRATION = TRUE;
+const AUTHENTICATION = TRUE;
 
 #===============================================================================
 # INCLUDE: Initialization
@@ -11,42 +11,68 @@ define('AUTHENTICATION', TRUE);
 require '../../core/application.php';
 
 #===============================================================================
-# IF: Handle search request
+# Get repositories
+#===============================================================================
+$PageRepository = Application::getRepository('Page');
+$UserRepository = Application::getRepository('User');
+
+#===============================================================================
+# Pagination
+#===============================================================================
+$site_size = Application::get('ADMIN.PAGE.LIST_SIZE');
+$site_sort = Application::get('ADMIN.PAGE.LIST_SORT');
+
+$currentSite = HTTP::GET('site') ?? 1;
+$currentSite = intval($currentSite);
+$offset = ($currentSite-1) * $site_size;
+
+#===============================================================================
+# Check for search request
 #===============================================================================
 if($search = HTTP::GET('q')) {
-	if($pageIDs = Page\Item::getSearchResultIDs($search, $Database)) {
-		foreach($pageIDs as $pageID) {
-			try {
-				$Page = Page\Factory::build($pageID);
-				$User = User\Factory::build($Page->attr('user'));
-
-				$pages[] = generatePageItemTemplate($Page, $User);
-			}
-			catch(Page\Exception $Exception){}
-			catch(User\Exception $Exception){}
+	try {
+		if(!$pages = $PageRepository->search($search, [], $site_size, $offset)) {
+			$messages[] = Application::getLanguage()->text(
+				'search_no_results', htmlspecialchars($search));
 		}
+
+		foreach($pages as $Page) {
+			$User = $UserRepository->find($Page->get('user'));
+			$templates[] = generatePageItemTemplate($Page, $User);
+		}
+	} catch(PDOException $Exception) {
+		$messages[] = $Exception->getMessage();
 	}
 }
 
 #===============================================================================
-# TRY: Template\Exception
+# Create pagination only if there are results
 #===============================================================================
-try {
-	$SearchTemplate = Template\Factory::build('page/search');
-	$SearchTemplate->set('QUERY', $search);
-	$SearchTemplate->set('PAGES', $pages ?? []);
+if($count = $PageRepository->getLastSearchOverallCount()) {
+	$last = ceil($count / $site_size);
 
-	$MainTemplate = Template\Factory::build('main');
-	$MainTemplate->set('NAME', $Language->text('title_page_search'));
-	$MainTemplate->set('HTML', $SearchTemplate);
-
-	echo $MainTemplate;
+	$pagination_data = [
+		'THIS' => $currentSite,
+		'LAST' => $last,
+		'HTML' => createPaginationTemplate(
+			$currentSite, $last, Application::getAdminURL('page/search.php')
+		)
+	];
 }
 
 #===============================================================================
-# CATCH: Template\Exception
+# Build document
 #===============================================================================
-catch(Template\Exception $Exception) {
-	Application::exit($Exception->getMessage());
-}
-?>
+$SearchTemplate = Template\Factory::build('page/search');
+$SearchTemplate->set('QUERY', $search);
+$SearchTemplate->set('PAGES', $templates ?? []);
+$SearchTemplate->set('FORM', [
+	'INFO' => $messages ?? []
+]);
+$SearchTemplate->set('PAGINATION', $pagination_data ?? []);
+
+$MainTemplate = Template\Factory::build('main');
+$MainTemplate->set('NAME', $Language->text('title_page_search'));
+$MainTemplate->set('HTML', $SearchTemplate);
+
+echo $MainTemplate;

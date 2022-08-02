@@ -2,8 +2,8 @@
 #===============================================================================
 # DEFINE: Administration
 #===============================================================================
-define('ADMINISTRATION', TRUE);
-define('AUTHENTICATION', TRUE);
+const ADMINISTRATION = TRUE;
+const AUTHENTICATION = TRUE;
 
 #===============================================================================
 # INCLUDE: Initialization
@@ -11,69 +11,65 @@ define('AUTHENTICATION', TRUE);
 require '../../core/application.php';
 
 #===============================================================================
+# Get repositories
+#===============================================================================
+$PostRepository = Application::getRepository('Post');
+$UserRepository = Application::getRepository('User');
+
+#===============================================================================
 # Pagination
 #===============================================================================
-$site_size = Application::get('POST.LIST_SIZE');
-$site_sort = Application::get('POST.LIST_SORT');
+$site_size = Application::get('ADMIN.POST.LIST_SIZE');
+$site_sort = Application::get('ADMIN.POST.LIST_SORT');
 
-$lastSite = ceil($Database->query(sprintf('SELECT COUNT(id) FROM %s', Post\Attribute::TABLE))->fetchColumn() / $site_size);
+$count = $PostRepository->getCount();
+$lastSite = ceil($count / $site_size);
 
 $currentSite = HTTP::GET('site') ?? 1;
 $currentSite = intval($currentSite);
+
+#===============================================================================
+# Redirect to post create form if no post exists
+#===============================================================================
+if(!$count) {
+	HTTP::redirect(Application::getAdminURL('post/insert.php'));
+}
 
 if($currentSite < 1 OR ($currentSite > $lastSite AND $lastSite > 0)) {
 	Application::error404();
 }
 
 #===============================================================================
-# Fetch post IDs from database
+# Get paginated post list
 #===============================================================================
-$execSQL = "SELECT id FROM %s ORDER BY {$site_sort} LIMIT ".(($currentSite-1) * $site_size).", {$site_size}";
-$postIDs = $Database->query(sprintf($execSQL, Post\Attribute::TABLE))->fetchAll($Database::FETCH_COLUMN);
+$posts = $PostRepository->getPaginated(
+	$site_sort,
+	$site_size,
+	($currentSite-1) * $site_size
+);
 
-#===============================================================================
-# TRY: Template\Exception
-#===============================================================================
-try {
-	foreach($postIDs as $postID) {
-		try {
-			$Post = Post\Factory::build($postID);
-			$User = User\Factory::build($Post->attr('user'));
-
-			$ItemTemplate = generatePostItemTemplate($Post, $User);
-
-			$posts[] = $ItemTemplate;
-		}
-		catch(Post\Exception $Exception){}
-		catch(User\Exception $Exception){}
-	}
-
-	$PaginationTemplate = Template\Factory::build('pagination');
-	$PaginationTemplate->set('THIS', $currentSite);
-	$PaginationTemplate->set('LAST', $lastSite);
-	$PaginationTemplate->set('HREF', Application::getAdminURL('post/?site=%d'));
-
-	$ListTemplate = Template\Factory::build('post/index');
-	$ListTemplate->set('LIST', [
-		'POSTS' => $posts ?? []
-	]);
-
-	$ListTemplate->set('PAGINATION', [
-		'THIS' => $currentSite,
-		'LAST' => $lastSite,
-		'HTML' => $PaginationTemplate
-	]);
-
-	$MainTemplate = Template\Factory::build('main');
-	$MainTemplate->set('NAME', $Language->text('title_post_overview', $currentSite));
-	$MainTemplate->set('HTML', $ListTemplate);
-	echo $MainTemplate;
+foreach($posts as $Post) {
+	$User = $UserRepository->find($Post->get('user'));
+	$templates[] = generatePostItemTemplate($Post, $User);
 }
 
 #===============================================================================
-# CATCH: Template\Exception
+# Build document
 #===============================================================================
-catch(Template\Exception $Exception) {
-	Application::exit($Exception->getMessage());
-}
-?>
+$ListTemplate = Template\Factory::build('post/index');
+$ListTemplate->set('LIST', [
+	'POSTS' => $templates ?? []
+]);
+
+$ListTemplate->set('PAGINATION', [
+	'THIS' => $currentSite,
+	'LAST' => $lastSite,
+	'HTML' => createPaginationTemplate(
+		$currentSite, $lastSite, Application::getAdminURL('post/')
+	)
+]);
+
+$MainTemplate = Template\Factory::build('main');
+$MainTemplate->set('NAME', $Language->text('title_post_overview', $currentSite));
+$MainTemplate->set('HTML', $ListTemplate);
+echo $MainTemplate;

@@ -41,11 +41,8 @@ $BLOGMETA_DESC = escapeHTML($BLOGMETA['DESC']);
 <?php endif; ?>
 
 	<link rel="icon" href="<?=Application::getTemplateURL('rsrc/favicon.ico')?>" />
-	<link rel="stylesheet" href="<?=Application::getTemplateURL('rsrc/main.css')?>" title="<?=$BLOGMETA_NAME?>" />
-
-	<link rel="alternate" type="application/rss+xml" title="<?=$Language->text('feed_name_items', $BLOGMETA_NAME)?>" href="<?=Application::getURL('feed/')?>" />
-	<link rel="alternate" type="application/rss+xml" title="<?=$Language->text('feed_name_posts', $BLOGMETA_NAME)?>" href="<?=Application::getURL('feed/post/')?>" />
-	<link rel="alternate" type="application/rss+xml" title="<?=$Language->text('feed_name_pages', $BLOGMETA_NAME)?>" href="<?=Application::getURL('feed/page/')?>" />
+	<link rel="stylesheet" href="<?=Application::getTemplateURL('rsrc/css/main.css')?>" title="<?=$BLOGMETA_NAME?>" />
+	<link rel="alternate" type="application/rss+xml" title="<?=$BLOGMETA_NAME?>" href="<?=Application::getURL('feed/')?>" />
 
 	<script defer src="<?=Application::getTemplateURL('rsrc/main.js')?>"></script>
 
@@ -71,6 +68,11 @@ $BLOGMETA_DESC = escapeHTML($BLOGMETA['DESC']);
 					<li>
 						<a href="<?=Application::getPostURL()?>" title="<?=$Language->text('post_overview')?>">
 							<i class="fa fa-newspaper-o"></i><?=$Language->text('posts')?>
+						</a>
+					</li>
+					<li>
+						<a href="<?=Application::getCategoryURL()?>" title="<?=$Language->text('category_overview')?>">
+							<i class="fa fa-tags"></i><?=$Language->text('categories')?>
 						</a>
 					</li>
 					<li>

@@ -2,8 +2,8 @@
 #===============================================================================
 # DEFINE: Administration
 #===============================================================================
-define('ADMINISTRATION', TRUE);
-define('AUTHENTICATION', TRUE);
+const ADMINISTRATION = TRUE;
+const AUTHENTICATION = TRUE;
 
 #===============================================================================
 # INCLUDE: Initialization
@@ -11,65 +11,63 @@ define('AUTHENTICATION', TRUE);
 require '../../core/application.php';
 
 #===============================================================================
+# Get repositories
+#===============================================================================
+$UserRepository = Application::getRepository('User');
+
+#===============================================================================
 # Pagination
 #===============================================================================
-$site_size = Application::get('POST.LIST_SIZE');
-$site_sort = Application::get('POST.LIST_SORT');
+$site_size = Application::get('ADMIN.USER.LIST_SIZE');
+$site_sort = Application::get('ADMIN.USER.LIST_SORT');
 
-$lastSite = ceil($Database->query(sprintf('SELECT COUNT(id) FROM %s', User\Attribute::TABLE))->fetchColumn() / $site_size);
+$count = $UserRepository->getCount();
+$lastSite = ceil($count / $site_size);
 
 $currentSite = HTTP::GET('site') ?? 1;
 $currentSite = intval($currentSite);
+
+#===============================================================================
+# Redirect to user create form if no user exists
+#===============================================================================
+if(!$count) {
+	HTTP::redirect(Application::getAdminURL('user/insert.php'));
+}
 
 if($currentSite < 1 OR ($currentSite > $lastSite AND $lastSite > 0)) {
 	Application::error404();
 }
 
 #===============================================================================
-# Fetch user IDs from database
+# Get paginated user list
 #===============================================================================
-$execSQL = "SELECT id FROM %s ORDER BY {$site_sort} LIMIT ".(($currentSite-1) * $site_size).", {$site_size}";
-$userIDs = $Database->query(sprintf($execSQL, User\Attribute::TABLE))->fetchAll($Database::FETCH_COLUMN);
+$users = $UserRepository->getPaginated(
+	$site_sort,
+	$site_size,
+	($currentSite-1) * $site_size
+);
 
-#===============================================================================
-# TRY: Template\Exception
-#===============================================================================
-try {
-	foreach($userIDs as $userID) {
-		try {
-			$User = User\Factory::build($userID);
-			$ItemTemplate = generateUserItemTemplate($User);
-
-			$users[] = $ItemTemplate;
-		} catch(User\Exception $Exception){}
-	}
-
-	$PaginationTemplate = Template\Factory::build('pagination');
-	$PaginationTemplate->set('THIS', $currentSite);
-	$PaginationTemplate->set('LAST', $lastSite);
-	$PaginationTemplate->set('HREF', Application::getAdminURL('user/?site=%d'));
-
-	$ListTemplate = Template\Factory::build('user/index');
-	$ListTemplate->set('LIST', [
-		'USERS' => $users ?? []
-	]);
-
-	$ListTemplate->set('PAGINATION', [
-		'THIS' => $currentSite,
-		'LAST' => $lastSite,
-		'HTML' => $PaginationTemplate
-	]);
-
-	$MainTemplate = Template\Factory::build('main');
-	$MainTemplate->set('NAME', $Language->text('title_user_overview', $currentSite));
-	$MainTemplate->set('HTML', $ListTemplate);
-	echo $MainTemplate;
+foreach($users as $User) {
+	$templates[] = generateUserItemTemplate($User);
 }
 
 #===============================================================================
-# CATCH: Template\Exception
+# Build document
 #===============================================================================
-catch(Template\Exception $Exception) {
-	Application::exit($Exception->getMessage());
-}
-?>
+$ListTemplate = Template\Factory::build('user/index');
+$ListTemplate->set('LIST', [
+	'USERS' => $templates ?? []
+]);
+
+$ListTemplate->set('PAGINATION', [
+	'THIS' => $currentSite,
+	'LAST' => $lastSite,
+	'HTML' => createPaginationTemplate(
+		$currentSite, $lastSite, Application::getAdminURL('user/')
+	)
+]);
+
+$MainTemplate = Template\Factory::build('main');
+$MainTemplate->set('NAME', $Language->text('title_user_overview', $currentSite));
+$MainTemplate->set('HTML', $ListTemplate);
+echo $MainTemplate;

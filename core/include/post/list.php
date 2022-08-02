@@ -2,8 +2,13 @@
 #===============================================================================
 # Get instances
 #===============================================================================
-$Database = Application::getDatabase();
 $Language = Application::getLanguage();
+
+#===============================================================================
+# Get repositories
+#===============================================================================
+$PostRepository = Application::getRepository('Post');
+$UserRepository = Application::getRepository('User');
 
 #===============================================================================
 # Pagination
@@ -11,7 +16,7 @@ $Language = Application::getLanguage();
 $site_size = Application::get('POST.LIST_SIZE');
 $site_sort = Application::get('POST.LIST_SORT');
 
-$count = $Database->query(sprintf('SELECT COUNT(id) FROM %s', Post\Attribute::TABLE))->fetchColumn();
+$count = $PostRepository->getCount();
 $lastSite = ceil($count / $site_size);
 
 $currentSite = HTTP::GET('site') ?? 1;
@@ -24,55 +29,43 @@ if($currentSite < 1 OR ($currentSite > $lastSite AND $lastSite > 0)) {
 #===============================================================================
 # Single redirect
 #===============================================================================
-if(Application::get('POST.SINGLE_REDIRECT') === TRUE AND $count === '1') {
-	$Statement = $Database->query(sprintf('SELECT id FROM %s LIMIT 1', Post\Attribute::TABLE));
-	$Post = Post\Factory::build($Statement->fetchColumn());
-	HTTP::redirect($Post->getURL());
+if(Application::get('POST.REDIRECT_SINGLE') === TRUE AND $count === 1) {
+	$Post = $PostRepository->getLast();
+	HTTP::redirect(Application::getEntityURL($Post));
 }
 
 #===============================================================================
-# TRY: Template\Exception
+# Get paginated post list
 #===============================================================================
-try {
-	$execSQL = "SELECT id FROM %s ORDER BY {$site_sort} LIMIT ".(($currentSite-1) * $site_size).", {$site_size}";
-	$postIDs = $Database->query(sprintf($execSQL, Post\Attribute::TABLE))->fetchAll($Database::FETCH_COLUMN);
+$posts = $PostRepository->getPaginated(
+	$site_sort,
+	$site_size,
+	($currentSite-1) * $site_size
+);
 
-	foreach($postIDs as $postID) {
-		try {
-			$Post = Post\Factory::build($postID);
-			$User = User\Factory::build($Post->attr('user'));
-
-			$ItemTemplate = generatePostItemTemplate($Post, $User);
-
-			$posts[] = $ItemTemplate;
-		}
-		catch(Post\Exception $Exception){}
-		catch(User\Exception $Exception){}
-	}
-
-	$ListTemplate = Template\Factory::build('post/list');
-	$ListTemplate->set('PAGINATION', [
-		'THIS' => $currentSite,
-		'LAST' => $lastSite,
-		'HTML' => generatePostNaviTemplate($currentSite)
-	]);
-	$ListTemplate->set('LIST', [
-		'POSTS' => $posts ?? []
-	]);
-
-	$MainTemplate = Template\Factory::build('main');
-	$MainTemplate->set('HTML', $ListTemplate);
-	$MainTemplate->set('HEAD', [
-		'NAME' => $Language->text('title_post_overview', $currentSite)
-	]);
-
-	echo $MainTemplate;
+foreach($posts as $Post) {
+	$User = $UserRepository->find($Post->get('user'));
+	$templates[] = generatePostItemTemplate($Post, $User);
 }
 
 #===============================================================================
-# CATCH: Template\Exception
+# Build document
 #===============================================================================
-catch(Template\Exception $Exception) {
-	Application::exit($Exception->getMessage());
-}
-?>
+$ListTemplate = Template\Factory::build('post/list');
+$ListTemplate->set('PAGINATION', [
+	'THIS' => $currentSite,
+	'LAST' => $lastSite,
+	'HTML' => createPaginationTemplate(
+		$currentSite, $lastSite, Application::getPostURL())
+]);
+$ListTemplate->set('LIST', [
+	'POSTS' => $templates ?? []
+]);
+
+$MainTemplate = Template\Factory::build('main');
+$MainTemplate->set('HTML', $ListTemplate);
+$MainTemplate->set('HEAD', [
+	'NAME' => $Language->text('title_post_overview', $currentSite)
+]);
+
+echo $MainTemplate;

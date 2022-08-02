@@ -14,6 +14,12 @@
 $LANGUAGE['date_format'] = '[D].[M].[Y]';
 
 #===============================================================================
+# Theme color switch
+#===============================================================================
+$LANGUAGE['bright_colors'] = 'Helle Farben';
+$LANGUAGE['dark_colors'] = 'Dunkle Farben';
+
+#===============================================================================
 # Item last text
 #===============================================================================
 $LANGUAGE['last_post'] = 'Letzter Post';
@@ -23,6 +29,7 @@ $LANGUAGE['last_user'] = 'Letzter Benutzer';
 #===============================================================================
 # Insert item description
 #===============================================================================
+$LANGUAGE['insert_category_desc'] = 'Hier kannst du eine neue Kategorie erstellen, um deine Beiträge zu kategorisieren.';
 $LANGUAGE['insert_page_desc'] = 'Hier kannst du eine neue Seite erstellen und veröffentlichen.';
 $LANGUAGE['insert_post_desc'] = 'Hier kannst du einen neuen Beitrag erstellen und veröffentlichen.';
 $LANGUAGE['insert_user_desc'] = 'Hier kannst du einen neuen Benutzer erstellen und veröffentlichen.';
@@ -30,6 +37,7 @@ $LANGUAGE['insert_user_desc'] = 'Hier kannst du einen neuen Benutzer erstellen u
 #===============================================================================
 # Update item description
 #===============================================================================
+$LANGUAGE['update_category_desc'] = 'Hier kannst du eine vorhandene Kategorie bearbeiten und die Änderungen abspeichern.';
 $LANGUAGE['update_page_desc'] = 'Hier kannst du eine vorhandene Seite bearbeiten und die Änderungen abspeichern.';
 $LANGUAGE['update_post_desc'] = 'Hier kannst du einen vorhandenen Beitrag bearbeiten und die Änderungen abspeichern.';
 $LANGUAGE['update_user_desc'] = 'Hier kannst du einen vorhandenen Benutzer bearbeiten und die Änderungen abspeichern.';
@@ -37,19 +45,21 @@ $LANGUAGE['update_user_desc'] = 'Hier kannst du einen vorhandenen Benutzer bearb
 #===============================================================================
 # Delete item description
 #===============================================================================
-$LANGUAGE['delete_page_desc'] = 'Falls du diese Seite nicht mehr benötigst kannst du sie über den folgenden Button permanent löschen.';
-$LANGUAGE['delete_post_desc'] = 'Falls du diesen Beitrag nicht mehr benötigst kannst du ihn über den folgenden Button permanent löschen.';
-$LANGUAGE['delete_user_desc'] = 'Falls du diesen Benutzer nicht mehr benötigst kannst du ihn über den folgenden Button permanent löschen.';
+$LANGUAGE['delete_category_desc'] = 'Falls du diese Kategorie nicht mehr benötigst, kannst du sie über den folgenden Button permanent löschen.';
+$LANGUAGE['delete_page_desc'] = 'Falls du diese Seite nicht mehr benötigst, kannst du sie über den folgenden Button permanent löschen.';
+$LANGUAGE['delete_post_desc'] = 'Falls du diesen Beitrag nicht mehr benötigst, kannst du ihn über den folgenden Button permanent löschen.';
+$LANGUAGE['delete_user_desc'] = 'Falls du diesen Benutzer nicht mehr benötigst, kannst du ihn über den folgenden Button permanent löschen.';
 
 #===============================================================================
 # Search item description
 #===============================================================================
-$LANGUAGE['search_page_desc'] = 'Hier kannst du mit der <em>booleschen Volltextsuche</em> eine Seite suchen (siehe <a href="https://dev.mysql.com/doc/refman/5.6/en/fulltext-boolean.html">MySQL-Dokumentation</a>).';
-$LANGUAGE['search_post_desc'] = 'Hier kannst du mit der <em>booleschen Volltextsuche</em> einen Beitrag suchen (siehe <a href="https://dev.mysql.com/doc/refman/5.6/en/fulltext-boolean.html">MySQL-Dokumentation</a>).';
+$LANGUAGE['search_page_desc'] = 'Hier kannst du mit der <em>booleschen Volltextsuche</em> eine Seite suchen (siehe <a href="https://dev.mysql.com/doc/refman/8.0/en/fulltext-boolean.html">MySQL-Dokumentation</a>).';
+$LANGUAGE['search_post_desc'] = 'Hier kannst du mit der <em>booleschen Volltextsuche</em> einen Beitrag suchen (siehe <a href="https://dev.mysql.com/doc/refman/8.0/en/fulltext-boolean.html">MySQL-Dokumentation</a>).';
 
 #===============================================================================
 # Item overview description
 #===============================================================================
+$LANGUAGE['overview_category_desc'] = 'Hier siehst du alle vorhandenen Kategorien in sortierter Reihenfolge.';
 $LANGUAGE['overview_page_desc'] = 'Hier siehst du alle vorhandenen Seiten.';
 $LANGUAGE['overview_post_desc'] = 'Hier siehst du alle vorhandenen Beiträge.';
 $LANGUAGE['overview_user_desc'] = 'Hier siehst du alle vorhandenen Benutzer.';
@@ -130,6 +140,8 @@ $LANGUAGE['label_mailaddr'] = 'E-Mail';
 $LANGUAGE['label_username'] = 'Username';
 $LANGUAGE['label_password'] = 'Passwort';
 $LANGUAGE['label_language'] = 'Sprache';
+$LANGUAGE['label_category'] = 'Kategorie';
+$LANGUAGE['label_category_parent'] = 'Innerhalb';
 
 #===============================================================================
 # Markdown
@@ -143,4 +155,13 @@ $LANGUAGE['markdown_code'] = 'Codeblock';
 $LANGUAGE['markdown_quote'] = 'Zitat';
 $LANGUAGE['markdown_list_ul'] = 'Liste [ungeordnet]';
 $LANGUAGE['markdown_list_ol'] = 'Liste [geordnet]';
-?>
+
+#===============================================================================
+# Migrations
+#===============================================================================
+$LANGUAGE['maintenance_mode'] = 'Wartungsmodus';
+$LANGUAGE['migration_upgrade'] = 'Eine Migration des Datenbankschemas ist erforderlich!<br>Die Datenbank verwendet die
+	Schema-Version <code>%d</code>, aber die Applikation benutzt die höhere Schema-Version <code>%d</code>.';
+$LANGUAGE['migration_notice'] = 'Die folgenden Kommandos migrieren das Datenbankschema von <code>%d</code> nach <code>%d</code>.';
+$LANGUAGE['migration_successful'] = 'Die folgenden Migrationen waren erfolgreich:';
+$LANGUAGE['migration_submit'] = 'Migrationen ausführen';

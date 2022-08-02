@@ -2,17 +2,37 @@
 #===============================================================================
 # Get instances
 #===============================================================================
-$Database = Application::getDatabase();
 $Language = Application::getLanguage();
 
-$SEARCH_SUCCESS = FALSE;
-$D_LIST = $Database->query(sprintf('SELECT DISTINCT DAY(time_insert) AS temp FROM %s ORDER BY temp', Post\Attribute::TABLE));
-$M_LIST = $Database->query(sprintf('SELECT DISTINCT MONTH(time_insert) AS temp FROM %s ORDER BY temp', Post\Attribute::TABLE));
-$Y_LIST = $Database->query(sprintf('SELECT DISTINCT YEAR(time_insert) AS temp FROM %s ORDER BY temp', Post\Attribute::TABLE));
+#===============================================================================
+# Get repositories
+#===============================================================================
+$PostRepository = Application::getRepository('Post');
+$UserRepository = Application::getRepository('User');
+
+#===============================================================================
+# Pagination
+#===============================================================================
+$site_size = Application::get('POST.LIST_SIZE');
+$site_sort = Application::get('POST.LIST_SORT');
+
+$currentSite = HTTP::GET('site') ?? 1;
+$currentSite = intval($currentSite);
+$offset = ($currentSite-1) * $site_size;
 
 if($search = HTTP::GET('q')) {
-	if(!$postIDs = Post\Item::getSearchResultIDs($search, [HTTP::GET('d'), HTTP::GET('m'), HTTP::GET('y')], $Database)) {
-		$message = $Language->text('search_no_results', escapeHTML($search));
+	$filter = [
+		'day'   => HTTP::GET('d'),
+		'month' => HTTP::GET('m'),
+		'year'  => HTTP::GET('y')
+	];
+
+	try {
+		if (!$posts = $PostRepository->search($search, $filter, $site_size, $offset)) {
+			$message = $Language->text('search_no_results', htmlspecialchars($search));
+		}
+	} catch(PDOException $Exception) {
+		$message = $Exception->getMessage();
 	}
 }
 
@@ -23,9 +43,9 @@ $form_data = [
 		'Y' => HTTP::GET('y'),
 	],
 	'OPTIONS' => [
-		'D' => $D_LIST->fetchAll($Database::FETCH_COLUMN),
-		'M' => $M_LIST->fetchAll($Database::FETCH_COLUMN),
-		'Y' => $Y_LIST->fetchAll($Database::FETCH_COLUMN),
+		'D' => $PostRepository->getDistinctDays(),
+		'M' => $PostRepository->getDistinctMonths(),
+		'Y' => $PostRepository->getDistinctYears(),
 	]
 ];
 
@@ -35,56 +55,51 @@ $search_data = [
 ];
 
 #===============================================================================
-# TRY: Template\Exception
+# Build document
 #===============================================================================
-try {
-	if(isset($postIDs) AND !empty($postIDs)) {
-		foreach($postIDs as $postID) {
-			try {
-				$Post = Post\Factory::build($postID);
-				$User = User\Factory::build($Post->attr('user'));
-
-				$posts[] = generatePostItemTemplate($Post, $User);
-			}
-			catch(Post\Exception $Exception){}
-			catch(User\Exception $Exception){}
-		}
-
-		$ResultTemplate = Template\Factory::build('search/result');
-		$ResultTemplate->set('FORM', $form_data);
-		$ResultTemplate->set('SEARCH', $search_data);
-		$ResultTemplate->set('RESULT', [
-			'LIST' => $posts ?? []
-		]);
-
-		$MainTemplate = Template\Factory::build('main');
-		$MainTemplate->set('HTML', $ResultTemplate);
-		$MainTemplate->set('HEAD', [
-			'NAME' => $Language->text('title_search_results', escapeHTML($search)),
-			'PERM' => Application::getURL('search/')
-		]);
+if(!empty($posts)) {
+	foreach($posts as $Post) {
+		$User = $UserRepository->find($Post->get('user'));
+		$templates[] = generatePostItemTemplate($Post, $User);
 	}
 
-	else {
-		$SearchTemplate = Template\Factory::build('search/main');
-		$SearchTemplate->set('FORM', $form_data);
-		$SearchTemplate->set('SEARCH', $search_data);
+	$count = $PostRepository->getLastSearchOverallCount();
+	$last = ceil($count / $site_size);
 
-		$MainTemplate = Template\Factory::build('main');
-		$MainTemplate->set('HTML', $SearchTemplate);
-		$MainTemplate->set('HEAD', [
-			'NAME' => $Language->text('title_search_request'),
-			'PERM' => Application::getURL('search/')
-		]);
-	}
+	$ResultTemplate = Template\Factory::build('search/result');
+	$ResultTemplate->set('FORM', $form_data);
+	$ResultTemplate->set('SEARCH', $search_data);
+	$ResultTemplate->set('RESULT', [
+		'LIST' => $templates ?? []
+	]);
 
-	echo $MainTemplate;
+	$ResultTemplate->set('PAGINATION', [
+		'THIS' => $currentSite,
+		'LAST' => $last,
+		'HTML' => createPaginationTemplate(
+			$currentSite, $last, Application::getURL('search/')
+		)
+	]);
+
+	$MainTemplate = Template\Factory::build('main');
+	$MainTemplate->set('HTML', $ResultTemplate);
+	$MainTemplate->set('HEAD', [
+		'NAME' => $Language->text('title_search_results', htmlspecialchars($search)),
+		'PERM' => Application::getURL('search/')
+	]);
 }
 
-#===============================================================================
-# CATCH: Template\Exception
-#===============================================================================
-catch(Template\Exception $Exception) {
-	Application::exit($Exception->getMessage());
+else {
+	$SearchTemplate = Template\Factory::build('search/main');
+	$SearchTemplate->set('FORM', $form_data);
+	$SearchTemplate->set('SEARCH', $search_data);
+
+	$MainTemplate = Template\Factory::build('main');
+	$MainTemplate->set('HTML', $SearchTemplate);
+	$MainTemplate->set('HEAD', [
+		'NAME' => $Language->text('title_search_request'),
+		'PERM' => Application::getURL('search/')
+	]);
 }
-?>
+
+echo $MainTemplate;

@@ -1,19 +1,35 @@
 <article class="item">
 	<header>
-		<h2><i class="fa fa-user"></i><?=escapeHTML($USER['ATTR']['FULLNAME'])?></h2>
-		<div>
-			<span class="brackets item-id">#<?=$USER['ATTR']['ID']?></span>
-			<time class="brackets" datetime="<?=$USER['ATTR']['TIME_INSERT']?>"><?=parseDatetime($USER['ATTR']['TIME_INSERT'], $Language->text('date_format'))?></time>
-		</div>
+		<h2>
+			<span class="item-id">#<?=$USER['ATTR']['ID']?></span>
+			<i class="fa fa-user"></i><?=escapeHTML($USER['ATTR']['FULLNAME'])?>
+		</h2>
+		<ul class="item-meta">
+			<li>
+				<i class="fa fa-clock-o"></i>
+				<time datetime="<?=$USER['ATTR']['TIME_INSERT']?>"><?=parseDatetime($USER['ATTR']['TIME_INSERT'], $Language->text('date_format'))?></time>
+			</li>
+			<li>
+				<i class="fa fa-user-secret"></i>
+				<?=escapeHTML($USER['ATTR']['USERNAME'])?>
+			</li>
+			<li class="item-meta-right">
+				<i class="fa fa-envelope-o"></i>
+				<a href="mailto:<?=escapeHTML($USER['ATTR']['MAILADDR'])?>"><?=escapeHTML($USER['ATTR']['MAILADDR'])?></a>
+			</li>
+		</ul>
 	</header>
 	<blockquote cite="<?=$USER['URL']?>">
+		<?php if(isset($USER['FILE']['LIST'][0])): ?>
+			<img class="item-image" src="<?=$USER['FILE']['LIST'][0]?>" alt="" />
+		<?php endif; ?>
 		<p><?=excerpt($USER['BODY']['HTML']())?></p>
 	</blockquote>
 
 	<?php if($USER['ARGV']): ?>
 		<ul class="arguments">
 			<?php foreach($USER['ARGV'] as $argument => $value): ?>
-				<li><strong><?=$argument?>:</strong> <span><?=escapeHTML($value)?></span></li>
+				<li><strong><?=$argument?>:</strong> <code><?=escapeHTML($value)?></code></li>
 			<?php endforeach; ?>
 		</ul>
 	<?php endif; ?>

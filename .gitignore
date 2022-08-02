@@ -1,2 +1,5 @@
-.idea/
-core/configuration.php
+/.idea/
+/rsrc/
+*.js.map
+*.css.map
+/core/configuration.php

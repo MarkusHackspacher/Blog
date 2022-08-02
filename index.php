@@ -5,39 +5,25 @@
 require 'core/application.php';
 
 #===============================================================================
-# Item base directory paths
+# ROUTE: Item controllers
 #===============================================================================
-$PAGEPATH = Application::get('PAGE.DIRECTORY');
-$POSTPATH = Application::get('POST.DIRECTORY');
-$USERPATH = Application::get('USER.DIRECTORY');
+foreach(['category', 'page', 'post', 'user'] as $item) {
+	$slug = Application::get(strtoupper($item).'.DIRECTORY');
 
-#===============================================================================
-# ROUTE: Item
-#===============================================================================
-Router::add("{$PAGEPATH}/([^/]+)/", function($param) { require 'core/include/page/main.php'; });
-Router::add("{$POSTPATH}/([^/]+)/", function($param) { require 'core/include/post/main.php'; });
-Router::add("{$USERPATH}/([^/]+)/", function($param) { require 'core/include/user/main.php'; });
+	# Item list controller
+	Router::add("{$slug}/", function() use($item) {
+		require "core/include/{$item}/list.php";
+	});
 
-#===============================================================================
-# ROUTE: Item overview
-#===============================================================================
-Router::add("{$PAGEPATH}/", function() { require 'core/include/page/list.php'; });
-Router::add("{$POSTPATH}/", function() { require 'core/include/post/list.php'; });
-Router::add("{$USERPATH}/", function() { require 'core/include/user/list.php'; });
+	# Item show controller
+	Router::add("{$slug}/([^/]+)/", function($param) use($item) {
+		require "core/include/{$item}/main.php";
+	});
 
-#===============================================================================
-# REDIRECT: Item (trailing slash)
-#===============================================================================
-Router::addRedirect("{$PAGEPATH}/([^/]+)", Application::getPageURL('$1/'));
-Router::addRedirect("{$POSTPATH}/([^/]+)", Application::getPostURL('$1/'));
-Router::addRedirect("{$USERPATH}/([^/]+)", Application::getUserURL('$1/'));
-
-#===============================================================================
-# REDIRECT: Item overview (trailing slash)
-#===============================================================================
-Router::addRedirect("{$PAGEPATH}", Application::getPageURL());
-Router::addRedirect("{$POSTPATH}", Application::getPostURL());
-Router::addRedirect("{$USERPATH}", Application::getUserURL());
+	# Item controllers (ensure trailing slashes)
+	Router::addRedirect($slug, Application::getURL("{$slug}/"));
+	Router::addRedirect("{$slug}/([^/]+)", Application::getURL("{$slug}/$1/"));
+}
 
 #===============================================================================
 # ROUTE: Home
@@ -47,28 +33,16 @@ Router::add('', function() {
 });
 
 #===============================================================================
-# ROUTE: Feed
+# ROUTE: Feed and Search
 #===============================================================================
-Router::add('feed/(?:(page|post)/)?', function($param = NULL) {
-	require 'core/include/feed/main.php';
+Router::add('(feed|search)/', function($slug) {
+	require "core/include/{$slug}/main.php";
 });
 
 #===============================================================================
-# ROUTE: Search
+# REDIRECT: Feed and Search (trailing slash)
 #===============================================================================
-Router::add('search/', function() {
-	require 'core/include/search/main.php';
-});
-
-#===============================================================================
-# REDIRECT: Feed (trailing slash)
-#===============================================================================
-Router::addRedirect('feed(/(?:page|post))?', Application::getURL('feed$1/'));
-
-#===============================================================================
-# REDIRECT: Search (trailing slash)
-#===============================================================================
-Router::addRedirect('search', Application::getURL('search/'));
+Router::addRedirect('(feed|search)', Application::getURL('$1/'));
 
 #===============================================================================
 # REDIRECT: Favicon
@@ -76,7 +50,11 @@ Router::addRedirect('search', Application::getURL('search/'));
 Router::addRedirect('favicon.ico', Application::getTemplateURL('rsrc/favicon.ico'));
 
 #===============================================================================
+# BACKWARD COMPATIBILITY: Redirect to the new post feed URL
+#===============================================================================
+Router::addRedirect('feed/post/', Application::getURL('feed/'), 301);
+
+#===============================================================================
 # Execute router and route requests
 #===============================================================================
 Router::execute(parse_url(HTTP::requestURI(), PHP_URL_PATH));
-?>

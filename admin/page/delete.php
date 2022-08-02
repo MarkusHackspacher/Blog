@@ -2,8 +2,8 @@
 #===============================================================================
 # DEFINE: Administration
 #===============================================================================
-define('ADMINISTRATION', TRUE);
-define('AUTHENTICATION', TRUE);
+const ADMINISTRATION = TRUE;
+const AUTHENTICATION = TRUE;
 
 #===============================================================================
 # INCLUDE: Initialization
@@ -11,56 +11,49 @@ define('AUTHENTICATION', TRUE);
 require '../../core/application.php';
 
 #===============================================================================
-# TRY: Page\Exception
+# Get repositories
 #===============================================================================
-try {
-	$Page = Page\Factory::build(HTTP::GET('id'));
-	$Attribute = $Page->getAttribute();
+$PageRepository = Application::getRepository('Page');
 
-	if(HTTP::issetPOST(['token' => Application::getSecurityToken()], 'delete')) {
+#===============================================================================
+# Throw 404 error if page could not be found
+#===============================================================================
+if(!$Page = $PageRepository->find(HTTP::GET('id'))) {
+	Application::error404();
+}
+
+#===============================================================================
+# Check for delete request
+#===============================================================================
+if(HTTP::issetPOST('delete')) {
+	if(HTTP::issetPOST(['token' => Application::getSecurityToken()])) {
 		try {
-			if($Attribute->databaseDELETE($Database)) {
-				HTTP::redirect(Application::getAdminURL('page/'));
-			}
+			$PageRepository->delete($Page);
+			HTTP::redirect(Application::getAdminURL('page/'));
 		} catch(PDOException $Exception) {
 			$messages[] = $Exception->getMessage();
 		}
-	}
-
-	#===============================================================================
-	# TRY: Template\Exception
-	#===============================================================================
-	try {
-		$FormTemplate = Template\Factory::build('page/form');
-		$FormTemplate->set('HTML', $Page->getHTML());
-		$FormTemplate->set('FORM', [
-			'TYPE' => 'DELETE',
-			'INFO' => $messages ?? [],
-			'DATA' => array_change_key_case($Attribute->getAll(), CASE_UPPER),
-			'TOKEN' => Application::getSecurityToken()
-		]);
-
-		$DeleteTemplate = Template\Factory::build('page/delete');
-		$DeleteTemplate->set('HTML', $FormTemplate);
-
-		$MainTemplate = Template\Factory::build('main');
-		$MainTemplate->set('NAME', $Language->text('title_page_delete'));
-		$MainTemplate->set('HTML', $DeleteTemplate);
-		echo $MainTemplate;
-	}
-
-	#===============================================================================
-	# CATCH: Template\Exception
-	#===============================================================================
-	catch(Template\Exception $Exception) {
-		Application::exit($Exception->getMessage());
+	} else {
+		$messages[] = $Language->text('error_security_csrf');
 	}
 }
 
 #===============================================================================
-# CATCH: Page\Exception
+# Build document
 #===============================================================================
-catch(Page\Exception $Exception) {
-	Application::error404();
-}
-?>
+$FormTemplate = Template\Factory::build('page/form');
+$FormTemplate->set('HTML', parseEntityContent($Page));
+$FormTemplate->set('FORM', [
+	'TYPE' => 'DELETE',
+	'INFO' => $messages ?? [],
+	'DATA' => array_change_key_case($Page->getAll(), CASE_UPPER),
+	'TOKEN' => Application::getSecurityToken()
+]);
+
+$DeleteTemplate = Template\Factory::build('page/delete');
+$DeleteTemplate->set('HTML', $FormTemplate);
+
+$MainTemplate = Template\Factory::build('main');
+$MainTemplate->set('NAME', $Language->text('title_page_delete'));
+$MainTemplate->set('HTML', $DeleteTemplate);
+echo $MainTemplate;

@@ -1,4 +1,7 @@
 <?php
+use ORM\EntityInterface;
+use Parsers\FunctionParser;
+
 class Application {
 
 	#===============================================================================
@@ -6,6 +9,8 @@ class Application {
 	#===============================================================================
 	private static $Database;
 	private static $Language;
+	private static $Migrator;
+	private static $repositories = [];
 
 	#===============================================================================
 	# Configuration array
@@ -23,7 +28,7 @@ class Application {
 	# Get configuration value
 	#===============================================================================
 	public static function get($config) {
-		return self::$configuration[$config] ?? "{$config}";
+		return self::$configuration[$config] ?? NULL;
 	}
 
 	#===============================================================================
@@ -43,7 +48,19 @@ class Application {
 			$username = self::get('DATABASE.USERNAME');
 			$password = self::get('DATABASE.PASSWORD');
 
-			self::$Database = new Database($hostname, $basename, $username, $password);
+			$Database = new Database($hostname, $basename, $username, $password);
+
+			$Database->setAttribute(
+				$Database::ATTR_DEFAULT_FETCH_MODE,
+				$Database::FETCH_ASSOC
+			);
+
+			$Database->setAttribute(
+				$Database::ATTR_ERRMODE,
+				$Database::ERRMODE_EXCEPTION
+			);
+
+			self::$Database = $Database;
 		}
 
 		return self::$Database;
@@ -68,21 +85,49 @@ class Application {
 	}
 
 	#===============================================================================
+	# Return singleton Migrator instance
+	#===============================================================================
+	public static function getMigrator(): Migrator {
+		if(!self::$Migrator instanceof Migrator) {
+			$Migrator = new Migrator(self::getDatabase());
+			$Migrator->setMigrationsDir(ROOT.'core/db/migrations/');
+			self::$Migrator = $Migrator;
+		}
+
+		return self::$Migrator;
+	}
+
+	#===============================================================================
+	# Return singleton repository instance
+	#===============================================================================
+	public static function getRepository(string $entity): ORM\Repository {
+		$identifier = strtolower($entity);
+
+		if(!isset(self::$repositories[$identifier])) {
+			$className = sprintf('ORM\Repositories\%sRepository', $entity);
+			$Repository = new $className(self::getDatabase());
+			self::$repositories[$identifier] = $Repository;
+		}
+
+		return self::$repositories[$identifier];
+	}
+
+	#===============================================================================
 	# Return unique CSRF token for the current session
 	#===============================================================================
 	public static function getSecurityToken(): string {
-		if(!isset($_SESSION['token'])) {
-			$_SESSION['token'] = getRandomValue();
+		if(!isset($_SESSION['CSRF_TOKEN'])) {
+			$_SESSION['CSRF_TOKEN'] = bin2hex(random_bytes(16));
 		}
 
-		return $_SESSION['token'];
+		return $_SESSION['CSRF_TOKEN'];
 	}
 
 	#===============================================================================
 	# Return boolean if successfully authenticated
 	#===============================================================================
 	public static function isAuthenticated(): bool {
-		return isset($_SESSION['auth']);
+		return isset($_SESSION['USER_ID']);
 	}
 
 	#===============================================================================
@@ -94,6 +139,13 @@ class Application {
 		$base = self::get('PATHINFO.BASE');
 
 		return "{$prot}://{$host}/{$base}{$more}";
+	}
+
+	#===============================================================================
+	# Return absolute category URL
+	#===============================================================================
+	public static function getCategoryURL($more = ''): string {
+		return self::getURL(self::get('CATEGORY.DIRECTORY')."/{$more}");
 	}
 
 	#===============================================================================
@@ -140,9 +192,44 @@ class Application {
 	}
 
 	#===============================================================================
+	# Return absolute URL of a specific entity
+	#===============================================================================
+	public static function getEntityURL(EntityInterface $Entity) {
+		switch($class = get_class($Entity)) {
+			case 'ORM\Entities\Category':
+				$attr = self::get('CATEGORY.SLUG_URLS') ? 'slug' : 'id';
+				return self::getCategoryURL($Entity->get($attr).'/');
+			case 'ORM\Entities\Page':
+				$attr = self::get('PAGE.SLUG_URLS') ? 'slug' : 'id';
+				return self::getPageURL($Entity->get($attr).'/');
+			case 'ORM\Entities\Post':
+				$attr = self::get('POST.SLUG_URLS') ? 'slug' : 'id';
+				return self::getPostURL($Entity->get($attr).'/');
+			case 'ORM\Entities\User':
+				$attr = self::get('USER.SLUG_URLS') ? 'slug' : 'id';
+				return self::getUserURL($Entity->get($attr).'/');
+			default:
+				$error = 'Unknown URL handler for <code>%s</code> entities.';
+				throw new Exception(sprintf($error, $class));
+		}
+	}
+
+	#===============================================================================
+	# Add a custom content function
+	#===============================================================================
+	public static function addContentFunction(string $name, callable $callback): void {
+		if(!preg_match('#^([0-9A-Z_]+)$#', $name)) {
+			throw new Exception('The name for adding a content function must
+				contain only numbers, uppercase letters and underscores!');
+		}
+
+		FunctionParser::register($name, $callback);
+	}
+
+	#===============================================================================
 	# Exit application with a custom message and status code
 	#===============================================================================
-	public static function exit($message = '', $code = 503): void {
+	public static function exit(?string $message = NULL, int $code = 503): void {
 		http_response_code($code);
 		exit($message);
 	}
@@ -151,16 +238,21 @@ class Application {
 	# Exit application with the 403 error page
 	#===============================================================================
 	public static function error403(): void {
-		require ROOT.'403.php';
-		exit();
+		$Template = Template\Factory::build('main');
+		$Template->set('NAME', '403 Forbidden');
+		$Template->set('HEAD', ['NAME' => $Template->get('NAME')]);
+		$Template->set('HTML', Template\Factory::build('403'));
+		self::exit($Template, 403);
 	}
 
 	#===============================================================================
 	# Exit application with the 404 error page
 	#===============================================================================
 	public static function error404(): void {
-		require ROOT.'404.php';
-		exit();
+		$Template = Template\Factory::build('main');
+		$Template->set('NAME', '404 Not Found');
+		$Template->set('HEAD', ['NAME' => $Template->get('NAME')]);
+		$Template->set('HTML', Template\Factory::build('404'));
+		self::exit($Template, 404);
 	}
 }
-?>

@@ -1,55 +1,48 @@
 <?php
 #===============================================================================
-# Get instances
+# Get repositories
 #===============================================================================
-$Database = Application::getDatabase();
-$Language = Application::getLanguage();
+$PostRepository = Application::getRepository('Post');
+$UserRepository = Application::getRepository('User');
 
 #===============================================================================
-# TRY: Template\Exception
+# Get paginated post list
 #===============================================================================
-try {
-	$execSQL = 'SELECT id FROM %s ORDER BY '.Application::get('POST.LIST_SORT').' LIMIT '.Application::get('POST.LIST_SIZE');
-	$Statement = $Database->query(sprintf($execSQL, Post\Attribute::TABLE));
+$posts = $PostRepository->getPaginated(
+	Application::get('POST.LIST_SORT'),
+	Application::get('POST.LIST_SIZE')
+);
 
-	$postIDs = $Statement->fetchAll($Database::FETCH_COLUMN);
-
-	foreach($postIDs as $postID) {
-		try {
-			$Post = Post\Factory::build($postID);
-			$User = User\Factory::build($Post->attr('user'));
-
-			$ItemTemplate = generatePostItemTemplate($Post, $User);
-
-			$posts[] = $ItemTemplate;
-		}
-		catch(Post\Exception $Exception){}
-		catch(User\Exception $Exception){}
-	}
-
-	$HomeTemplate = Template\Factory::build('home');
-	$HomeTemplate->set('PAGINATION', [
-		'HTML' => generatePostNaviTemplate(1)
-	]);
-	$HomeTemplate->set('LIST', [
-		'POSTS' => $posts ?? []
-	]);
-
-	$MainTemplate = Template\Factory::build('main');
-	$MainTemplate->set('HTML', $HomeTemplate);
-	$MainTemplate->set('HEAD', [
-		'NAME' => Application::get('BLOGMETA.HOME'),
-		'DESC' => Application::get('BLOGMETA.NAME').' – '.Application::get('BLOGMETA.DESC'),
-		'PERM' => Application::getURL()
-	]);
-
-	echo $MainTemplate;
+foreach($posts as $Post) {
+	$User = $UserRepository->find($Post->get('user'));
+	$templates[] = generatePostItemTemplate($Post, $User);
 }
 
 #===============================================================================
-# CATCH: Template\Exception
+# Pagination
 #===============================================================================
-catch(Template\Exception $Exception) {
-	Application::exit($Exception->getMessage());
-}
-?>
+$count = $PostRepository->getCount();
+$lastSite = ceil($count / Application::get('POST.LIST_SIZE'));
+
+#===============================================================================
+# Build document
+#===============================================================================
+$HomeTemplate = Template\Factory::build('home');
+$HomeTemplate->set('PAGINATION', [
+	'HTML' => createPaginationTemplate(
+		1, $lastSite, Application::getPostURL())
+]);
+$HomeTemplate->set('LIST', [
+	'POSTS' => $templates ?? []
+]);
+
+$MainTemplate = Template\Factory::build('main');
+$MainTemplate->set('HTML', $HomeTemplate);
+$MainTemplate->set('HEAD', [
+	'NAME' => Application::get('BLOGMETA.HOME'),
+	'DESC' => Application::get('BLOGMETA.NAME').' – '
+		.Application::get('BLOGMETA.DESC'),
+	'PERM' => Application::getURL()
+]);
+
+echo $MainTemplate;

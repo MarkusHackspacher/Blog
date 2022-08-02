@@ -1,49 +1,62 @@
 <?php
+use ORM\EntityInterface;
+use ORM\Entities\Category;
+use ORM\Entities\Page;
+use ORM\Entities\Post;
+use ORM\Entities\User;
+
+use Template\Template as Template;
+use Template\Factory as TemplateFactory;
+
+use Parsers\ArgumentParser;
+use Parsers\FunctionParser;
+use Parsers\EmoticonParser;
+use Parsers\MarkdownParser;
+
 #===============================================================================
-# Helper function to reduce duplicate code
+# Create generic pagination template
 #===============================================================================
-function generateNaviTemplate(int $current, $location, $namespace): Template\Template {
-	$Database = Application::getDatabase();
-	$Attribute = "{$namespace}\\Attribute";
+function createPaginationTemplate($current, $last, string $location): Template {
+	$params = http_build_query(array_merge($_GET, ['site' => '__SITE__']));
+	$params = str_replace('%', '%%', $params);
+	$params = str_replace('__SITE__', '%d', $params);
 
-	$Statement = $Database->query(sprintf('SELECT COUNT(id) FROM %s', $Attribute::TABLE));
+	$Pagination = TemplateFactory::build('pagination');
+	$Pagination->set('THIS', $current);
+	$Pagination->set('LAST', $last);
+	$Pagination->set('HREF', "{$location}?{$params}");
 
-	$lastSite = ceil($Statement->fetchColumn() / Application::get(strtoupper($namespace).'.LIST_SIZE'));
-
-	$PaginationTemplate = Template\Factory::build('pagination');
-	$PaginationTemplate->set('THIS', $current);
-	$PaginationTemplate->set('LAST', $lastSite);
-	$PaginationTemplate->set('HREF', "{$location}?site=%d");
-
-	return $PaginationTemplate;
+	return $Pagination;
 }
 
 #===============================================================================
 # Helper function to reduce duplicate code
 #===============================================================================
-function generatePageNaviTemplate($current): Template\Template {
-	return generateNaviTemplate($current, Application::getPageURL(), 'Page');
+function generateCategoryItemTemplate(Category $Category, bool $is_root = FALSE): Template {
+	$CategoryRepository = Application::getRepository('Category');
+
+	foreach($CategoryRepository->findWithParents($Category->getID()) as $Category) {
+		$category_data = generateItemTemplateData($Category);
+		$category_list[] = $category_data;
+	}
+
+	$Template = TemplateFactory::build('category/item');
+	$Template->set('IS_ROOT', $is_root);
+	$Template->set('CATEGORY', $category_data ?? []);
+	$Template->set('CATEGORIES', $category_list ?? []);
+	$Template->set('COUNT', [
+		'POST' => $CategoryRepository->getNumberOfPosts($Category),
+		'CHILDREN' => $CategoryRepository->getNumberOfChildren($Category)
+	]);
+
+	return $Template;
 }
 
 #===============================================================================
 # Helper function to reduce duplicate code
 #===============================================================================
-function generatePostNaviTemplate($current): Template\Template {
-	return generateNaviTemplate($current, Application::getPostURL(), 'Post');
-}
-
-#===============================================================================
-# Helper function to reduce duplicate code
-#===============================================================================
-function generateUserNaviTemplate($current): Template\Template {
-	return generateNaviTemplate($current, Application::getUserURL(), 'User');
-}
-
-#===============================================================================
-# Helper function to reduce duplicate code
-#===============================================================================
-function generatePageItemTemplate(Page\Item $Page, User\Item $User): Template\Template {
-	$Template = Template\Factory::build('page/item');
+function generatePageItemTemplate(Page $Page, User $User): Template {
+	$Template = TemplateFactory::build('page/item');
 	$Template->set('PAGE', generateItemTemplateData($Page));
 	$Template->set('USER', generateItemTemplateData($User));
 
@@ -53,10 +66,19 @@ function generatePageItemTemplate(Page\Item $Page, User\Item $User): Template\Te
 #===============================================================================
 # Helper function to reduce duplicate code
 #===============================================================================
-function generatePostItemTemplate(Post\Item $Post, User\Item $User): Template\Template {
-	$Template = Template\Factory::build('post/item');
+function generatePostItemTemplate(Post $Post, User $User): Template {
+	$CategoryRepository = Application::getRepository('Category');
+
+	foreach($CategoryRepository->findWithParents($Post->get('category')) as $Category) {
+		$category_data = generateItemTemplateData($Category);
+		$categories[] = $category_data;
+	}
+
+	$Template = TemplateFactory::build('post/item');
 	$Template->set('POST', generateItemTemplateData($Post));
 	$Template->set('USER', generateItemTemplateData($User));
+	$Template->set('CATEGORY', $category_data ?? []);
+	$Template->set('CATEGORIES', $categories ?? []);
 
 	return $Template;
 }
@@ -64,8 +86,8 @@ function generatePostItemTemplate(Post\Item $Post, User\Item $User): Template\Te
 #===============================================================================
 # Helper function to reduce duplicate code
 #===============================================================================
-function generateUserItemTemplate(User\Item $User): Template\Template {
-	$Template = Template\Factory::build('user/item');
+function generateUserItemTemplate(User $User): Template {
+	$Template = TemplateFactory::build('user/item');
 	$Template->set('USER', generateItemTemplateData($User));
 
 	return $Template;
@@ -74,70 +96,114 @@ function generateUserItemTemplate(User\Item $User): Template\Template {
 #===============================================================================
 # Helper function to reduce duplicate code
 #===============================================================================
-function generateItemTemplateData(Item $Item): array {
-	$ATTR = $Item->getAttribute()->getAll(['password']);
-	$ATTR = array_change_key_case($ATTR, CASE_UPPER);
+function generateItemTemplateData(EntityInterface $Entity): array {
+	$ArgumentParser = new ArgumentParser;
+	$MarkdownParser = new MarkdownParser;
+
+	$attribute = $Entity->getAll(['password']);
+	$attribute = array_change_key_case($attribute, CASE_UPPER);
+
+	$text = parseContentTags($Entity->get('body'));
+	$arguments = $ArgumentParser->parse($Entity->get('argv') ?? '');
+
+	$images = $MarkdownParser->parse($text)['img']['src'] ?? [];
+	$images = array_map('htmlentities', $images);
 
 	return [
-		'URL' => $Item->getURL(),
-		'GUID' => $Item->getGUID(),
-		'ARGV' => $Item->getArguments(),
-
-		'ATTR' => $ATTR,
+		'URL' => Application::getEntityURL($Entity),
+		'ARGV' => $arguments,
+		'ATTR' => $attribute,
 
 		'PREV' => FALSE,
 		'NEXT' => FALSE,
 
 		'FILE' => [
-			'LIST' => $Item->getFiles()
+			'LIST' => $images,
 		],
 
 		'BODY' => [
-			'TEXT' => function() use($Item) {
-				return $Item->getBody();
+			'TEXT' => function() use($text) {
+				return $text;
 			},
-			'HTML' => function() use($Item) {
-				return $Item->getHTML();
+			'HTML' => function() use($Entity) {
+				return parseEntityContent($Entity);
 			}
 		]
 	];
 }
 
 #===============================================================================
+# Generate a nested tree from a category data array
+#===============================================================================
+function generateCategoryDataTree(array $category_data, $root = 0): array {
+	foreach($category_data as &$category){
+		$tree[intval($category['PARENT'])][] = &$category;
+		unset($category['PARENT']);
+	}
+
+	foreach($category_data as &$category){
+		if (isset($tree[$category['ID']])){
+			$category['CHILDS'] = $tree[$category['ID']];
+		}
+	}
+
+	return $tree[$root] ?? [];
+}
+
+#===============================================================================
+# Parse content tags
+#===============================================================================
+function parseContentTags(string $text): string {
+	$entity_tags = '#\{(POST|PAGE|USER)\[([0-9]+)\]\}#';
+
+	$text = preg_replace_callback($entity_tags, function($matches) {
+		$namespace = ucfirst(strtolower($matches[1]));
+		$Repository = Application::getRepository($namespace);
+
+		if($Entity = $Repository->find($matches[2])) {
+			return Application::getEntityURL($Entity);
+		}
+
+		else {
+			return '{undefined}';
+		}
+	}, $text);
+
+	$base_tag = '#\{BASE\[\"([^"]+)\"\]\}#';
+	$file_tag = '#\{FILE\[\"([^"]+)\"\]\}#';
+
+	$text = preg_replace($base_tag, \Application::getURL('$1'), $text);
+	$text = preg_replace($file_tag, \Application::getFileURL('$1'), $text);
+
+	$FunctionParser = new FunctionParser;
+	return $FunctionParser->transform($text);
+}
+
+#===============================================================================
+# Parse entity content
+#===============================================================================
+function parseEntityContent(EntityInterface $Entity): string {
+	$text = parseContentTags($Entity->get('body'));
+
+	if(Application::get('WRAP_EMOTICONS')) {
+		$EmoticonParser = new EmoticonParser;
+		$text = $EmoticonParser->transform($text);
+	}
+
+	$MarkdownParser = new MarkdownParser;
+	return $MarkdownParser->transform($text);
+}
+
+#===============================================================================
 # Parser for datetime formatted strings [YYYY-MM-DD HH:II:SS]
 #===============================================================================
 function parseDatetime($datetime, $format): string {
-	$Language = Application::getLanguage();
-
 	list($date, $time) = explode(' ', $datetime);
 
 	list($DATE['Y'], $DATE['M'], $DATE['D']) = explode('-', $date);
 	list($TIME['H'], $TIME['M'], $TIME['S']) = explode(':', $time);
 
-	$M_LIST = [
-		'01' => $Language->text('month_01'),
-		'02' => $Language->text('month_02'),
-		'03' => $Language->text('month_03'),
-		'04' => $Language->text('month_04'),
-		'05' => $Language->text('month_05'),
-		'06' => $Language->text('month_06'),
-		'07' => $Language->text('month_07'),
-		'08' => $Language->text('month_08'),
-		'09' => $Language->text('month_09'),
-		'10' => $Language->text('month_10'),
-		'11' => $Language->text('month_11'),
-		'12' => $Language->text('month_12'),
-	];
-
-	$D_LIST = [
-		0 => $Language->text('day_6'),
-		1 => $Language->text('day_0'),
-		2 => $Language->text('day_1'),
-		3 => $Language->text('day_2'),
-		4 => $Language->text('day_3'),
-		5 => $Language->text('day_4'),
-		6 => $Language->text('day_5'),
-	];
+	$unixtime = strtotime($datetime);
 
 	return strtr($format, [
 		'[Y]' => $DATE['Y'],
@@ -146,88 +212,19 @@ function parseDatetime($datetime, $format): string {
 		'[H]' => $TIME['H'],
 		'[I]' => $TIME['M'],
 		'[S]' => $TIME['S'],
-		'[W]' => $D_LIST[date('w', strtotime($datetime))],
-		'[F]' => $M_LIST[date('m', strtotime($datetime))],
+		'[W]' => strftime('%A', $unixtime),
+		'[F]' => strftime('%B', $unixtime),
 		'[DATE]' => $date,
 		'[TIME]' => $time,
-		'[RFC2822]' => date('r', strtotime($datetime))
+		'[RFC2822]' => date('r', $unixtime)
 	]);
 }
 
 #===============================================================================
-# Get emoticons with unicode characters and description
-#===============================================================================
-function getEmoticons(): array {
-	$Language = Application::getLanguage();
-
-	return [
-		':)' => ['&#x1F60A;', $Language->text('emoticon_1F60A')],
-		':(' => ['&#x1F61E;', $Language->text('emoticon_1F61E')],
-		':D' => ['&#x1F603;', $Language->text('emoticon_1F603')],
-		':P' => ['&#x1F61B;', $Language->text('emoticon_1F61B')],
-		':O' => ['&#x1F632;', $Language->text('emoticon_1F632')],
-		';)' => ['&#x1F609;', $Language->text('emoticon_1F609')],
-		';(' => ['&#x1F622;', $Language->text('emoticon_1F622')],
-		':|' => ['&#x1F610;', $Language->text('emoticon_1F610')],
-		':X' => ['&#x1F635;', $Language->text('emoticon_1F635')],
-		':/' => ['&#x1F612;', $Language->text('emoticon_1F612')],
-		'8)' => ['&#x1F60E;', $Language->text('emoticon_1F60E')],
-		':S' => ['&#x1F61F;', $Language->text('emoticon_1F61F')],
-		'xD' => ['&#x1F602;', $Language->text('emoticon_1F602')],
-		'^^' => ['&#x1F604;', $Language->text('emoticon_1F604')],
-	];
-}
-
-#===============================================================================
-# Parse emoticons to HTML encoded unicode characters
-#===============================================================================
-function parseEmoticons($string): string {
-	foreach(getEmoticons() as $emoticon => $data) {
-		$pattern = '#(^|\s)'.preg_quote($emoticon).'#';
-		$replace = "\\1<span title=\"{$data[1]}\">{$data[0]}</span>";
-
-		$string = preg_replace($pattern, $replace, $string);
-	}
-
-	return $string;
-}
-
-#===============================================================================
-# Get unicode emoticons with their corresponding explanation
+# Get emoticons with their explanations
 #===============================================================================
 function getUnicodeEmoticons(): array {
-	$Language = Application::getLanguage();
-
-	return [
-		html_entity_decode('&#x1F60A;') => $Language->text('emoticon_1F60A'),
-		html_entity_decode('&#x1F61E;') => $Language->text('emoticon_1F61E'),
-		html_entity_decode('&#x1F603;') => $Language->text('emoticon_1F603'),
-		html_entity_decode('&#x1F61B;') => $Language->text('emoticon_1F61B'),
-		html_entity_decode('&#x1F632;') => $Language->text('emoticon_1F632'),
-		html_entity_decode('&#x1F609;') => $Language->text('emoticon_1F609'),
-		html_entity_decode('&#x1F622;') => $Language->text('emoticon_1F622'),
-		html_entity_decode('&#x1F610;') => $Language->text('emoticon_1F610'),
-		html_entity_decode('&#x1F635;') => $Language->text('emoticon_1F635'),
-		html_entity_decode('&#x1F612;') => $Language->text('emoticon_1F612'),
-		html_entity_decode('&#x1F60E;') => $Language->text('emoticon_1F60E'),
-		html_entity_decode('&#x1F61F;') => $Language->text('emoticon_1F61F'),
-		html_entity_decode('&#x1F602;') => $Language->text('emoticon_1F602'),
-		html_entity_decode('&#x1F604;') => $Language->text('emoticon_1F604'),
-	];
-}
-
-#===============================================================================
-# Wrap emoticons in <span> element with "title" attribute for explanation
-#===============================================================================
-function parseUnicodeEmoticons($string): string {
-	foreach(getUnicodeEmoticons() as $emoticon => $explanation) {
-		$pattern = '#(^|\s)'.preg_quote($emoticon).'#';
-		$replace = "\\1<span title=\"{$explanation}\">{$emoticon}</span>";
-
-		$string = preg_replace($pattern, $replace, $string);
-	}
-
-	return $string;
+	return (new EmoticonParser)->getEmoticons();
 }
 
 #===============================================================================
@@ -235,13 +232,6 @@ function parseUnicodeEmoticons($string): string {
 #===============================================================================
 function escapeHTML($string): string {
 	return htmlspecialchars($string);
-}
-
-#===============================================================================
-# Wrapper function for strip_tags()
-#===============================================================================
-function removeHTML($string): string {
-	return strip_tags($string);
 }
 
 #===============================================================================
@@ -256,13 +246,6 @@ function removeDoubleLineBreaks($string): string {
 #===============================================================================
 function removeWhitespace($string): string {
 	return preg_replace('/\s+/S', ' ', trim($string));
-}
-
-#===============================================================================
-# Return pseudo-random (hex converted) string
-#===============================================================================
-function getRandomValue($length = 40): string {
-	return strtoupper(bin2hex(random_bytes(ceil($length / 2))));
 }
 
 #===============================================================================
@@ -286,7 +269,7 @@ function truncate($string, $length, $replace = '') {
 # Return excerpt content
 #===============================================================================
 function excerpt($string, $length = 500, $replace = ' […]') {
-	$string = removeHTML($string);
+	$string = strip_tags($string);
 	$string = removeDoubleLineBreaks($string);
 	$string = truncate($string, $length, $replace);
 	$string = nl2br($string);
@@ -298,7 +281,7 @@ function excerpt($string, $length = 500, $replace = ' […]') {
 # Return content for meta description
 #===============================================================================
 function description($string, $length = 200, $replace = ' […]') {
-	$string = removeHTML($string);
+	$string = strip_tags($string);
 	$string = removeWhitespace($string);
 	$string = truncate($string, $length, $replace);
 
@@ -321,39 +304,113 @@ function generateSlug($string, $separator = '-') {
 	return trim($string, $separator);
 }
 
+#===========================================================================
+# Callback for (CATEGORY|PAGE|POST|USER) content function
+#===========================================================================
+function getEntityMarkdownLink($ns, $id, $text = NULL, $info = NULL): string {
+	if(!$Entity = Application::getRepository($ns)->find($id)) {
+		return sprintf('`{%s: *Reference error*}`', strtoupper($ns));
+	}
+
+	$title = htmlspecialchars($Entity->get('name') ?? $Entity->get('fullname'));
+	$href = Application::getEntityURL($Entity);
+	$text = $text ?: "»{$title}«";
+	$info = $info ?: sprintf('%s »%s«',
+		Application::getLanguage()->text(strtolower($ns)), $title);
+
+	return sprintf('[%s](%s "%s")',	$text, $href, $info);
+}
+
 #===============================================================================
-# Function to get data from specific page in templates
+# Function for use in templates to get data of a category
+#===============================================================================
+function CATEGORY(int $id): array {
+	$Repository = Application::getRepository('Category');
+
+	if($Category = $Repository->find($id)) {
+		return generateItemTemplateData($Category);
+	}
+
+	return [];
+}
+
+#===============================================================================
+# Function for use in templates to get data of a page
 #===============================================================================
 function PAGE(int $id): array {
-	try {
-		$Page = Page\Factory::build($id);
+	$Repository = Application::getRepository('Page');
+
+	if($Page = $Repository->find($id)) {
 		return generateItemTemplateData($Page);
-	} catch(Page\Exception $Exception) {
-		return [];
 	}
+
+	return [];
 }
 
 #===============================================================================
-# Function to get data from specific post in templates
+# Function for use in templates to get data of a post
 #===============================================================================
 function POST(int $id): array {
-	try {
-		$Post = Post\Factory::build($id);
+	$Repository = Application::getRepository('Post');
+
+	if($Post = $Repository->find($id)) {
 		return generateItemTemplateData($Post);
-	} catch(Post\Exception $Exception) {
-		return [];
 	}
+
+	return [];
 }
 
 #===============================================================================
-# Function to get data from specific user in templates
+# Function for use in templates to get data of a user
 #===============================================================================
 function USER(int $id): array {
-	try {
-		$User = User\Factory::build($id);
+	$Repository = Application::getRepository('User');
+
+	if($User = $Repository->find($id)) {
 		return generateItemTemplateData($User);
-	} catch(User\Exception $Exception) {
-		return [];
 	}
+
+	return [];
 }
-?>
+
+#===========================================================================
+# Get base URL (optionally extended by $extend)
+#===========================================================================
+FunctionParser::register('BASE_URL', function($extend = '') {
+	return Application::getURL($extend);
+});
+
+#===========================================================================
+# Get file URL (optionally extended by $extend)
+#===========================================================================
+FunctionParser::register('FILE_URL', function($extend = '') {
+	return Application::getFileURL($extend);
+});
+
+#===========================================================================
+# Get Markdown formatted *category* link
+#===========================================================================
+FunctionParser::register('CATEGORY', function($id, $text = NULL, $title = NULL) {
+	return getEntityMarkdownLink('Category', $id, $text, $title);
+});
+
+#===========================================================================
+# Get Markdown formatted *page* link
+#===========================================================================
+FunctionParser::register('PAGE', function($id, $text = NULL, $title = NULL) {
+	return getEntityMarkdownLink('Page', $id, $text, $title);
+});
+
+#===========================================================================
+# Get Markdown formatted *post* link
+#===========================================================================
+FunctionParser::register('POST', function($id, $text = NULL, $title = NULL) {
+	return getEntityMarkdownLink('Post', $id, $text, $title);
+});
+
+#===========================================================================
+# Get Markdown formatted *user* link
+#===========================================================================
+FunctionParser::register('USER', function($id, $text = NULL, $title = NULL) {
+	return getEntityMarkdownLink('User', $id, $text, $title);
+});

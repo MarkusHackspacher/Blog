@@ -1,20 +1,37 @@
 <article class="item">
 	<header>
-		<h2><i class="fa fa-newspaper-o"></i><?=escapeHTML($POST['ATTR']['NAME'])?></h2>
-		<div>
-			<span class="brackets item-id">#<?=$POST['ATTR']['ID']?></span>
-			<a class="brackets" href="<?=Application::getAdminURL("user/update.php?id={$USER['ATTR']['ID']}")?>" title="<?=$Language->text('update_user')?>"><?=escapeHTML($USER['ATTR']['FULLNAME'])?></a>
-			<time class="brackets" datetime="<?=$POST['ATTR']['TIME_INSERT']?>"><?=parseDatetime($POST['ATTR']['TIME_INSERT'], $Language->text('date_format'))?></time>
-		</div>
+		<h2>
+			<span class="item-id">#<?=$POST['ATTR']['ID']?></span>
+			<i class="fa fa-newspaper-o"></i><?=escapeHTML($POST['ATTR']['NAME'])?>
+		</h2>
+		<ul class="item-meta">
+			<li>
+				<i class="fa fa-clock-o"></i>
+				<time datetime="<?=$POST['ATTR']['TIME_INSERT']?>"><?=parseDatetime($POST['ATTR']['TIME_INSERT'], $Language->text('date_format'))?></time>
+			</li>
+			<li>
+				<i class="fa fa-user"></i>
+				<a href="<?=Application::getAdminURL("user/update.php?id={$USER['ATTR']['ID']}")?>" title="<?=$Language->text('update_user')?>"><?=escapeHTML($USER['ATTR']['FULLNAME'])?></a>
+			</li>
+			<?php if($CATEGORY): ?>
+			<li class="item-meta-right">
+				<i class="fa fa-tag"></i>
+				<a href="<?=Application::getAdminURL("category/update.php?id={$CATEGORY['ATTR']['ID']}")?>" title="<?=$Language->text('update_category')?>"><?=escapeHTML($CATEGORY['ATTR']['NAME'])?></a>
+			</li>
+			<?php endif ?>
+		</ul>
 	</header>
 	<blockquote cite="<?=$POST['URL']?>">
+		<?php if(isset($POST['FILE']['LIST'][0])): ?>
+			<img class="item-image" src="<?=$POST['FILE']['LIST'][0]?>" alt="" />
+		<?php endif; ?>
 		<p><?=excerpt($POST['BODY']['HTML']())?></p>
 	</blockquote>
 
 	<?php if($POST['ARGV']): ?>
 		<ul class="arguments">
 			<?php foreach($POST['ARGV'] as $argument => $value): ?>
-				<li><strong><?=$argument?>:</strong> <span><?=escapeHTML($value)?></span></li>
+				<li><strong><?=$argument?>:</strong> <code><?=escapeHTML($value)?></code></li>
 			<?php endforeach; ?>
 		</ul>
 	<?php endif; ?>
