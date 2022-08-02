@@ -9,22 +9,29 @@
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 
 #===============================================================================
+# Check for minimum required PHP version
+#===============================================================================
+if(!version_compare(PHP_VERSION, '7.3', '>=')) {
+	exit('ABORT: This application requires at least PHP 7.3 to run.');
+}
+
+#===============================================================================
 # Document root
 #===============================================================================
 define('ROOT', dirname(__DIR__).'/');
 
 #===============================================================================
-# Autoload register for classes
+# Register autoloader for classes
 #===============================================================================
-spl_autoload_register(function($classname) {
-	$classname = str_replace('\\', '/', $classname);
-	$exclude_list = array('PHPUnit/DbUnit/TestCase',
-			      'Symfony/Component/Yaml/Yaml',
-			      'Composer/Autoload/ClassLoader');
-	if (!in_array($classname, $exclude_list)) {
-	        require "namespace/{$classname}.php";
+spl_autoload_register(function($className) {
+	$classPath = str_replace('\\', '/', $className);
+	$classPath = ROOT."core/namespace/{$classPath}.php";
+
+	if(is_file($classPath)) {
+		require $classPath;
 	}
 });
+
 #===============================================================================
 # Exception handler for non-caught exceptions
 #===============================================================================
@@ -38,9 +45,9 @@ set_exception_handler(function(Throwable $Exception) {
 HTTP::init($_GET, $_POST, $_FILES, TRUE);
 
 #===============================================================================
-# Default configuration (can be overridden in configuration.php)
+# Set default configuration
 #===============================================================================
-$configuration = [
+foreach([
 	'CORE.LANGUAGE' => 'en',
 	'CORE.SEND_304' => FALSE,
 	'BLOGMETA.NAME' => 'Example blog',
@@ -52,6 +59,7 @@ $configuration = [
 	'DATABASE.BASENAME' => 'blog',
 	'DATABASE.USERNAME' => 'blog',
 	'DATABASE.PASSWORD' => '',
+	'MIGRATOR.ENABLED' => TRUE,
 	'TEMPLATE.NAME' => 'default',
 	'TEMPLATE.LANG' => 'en',
 	'ADMIN.TEMPLATE' => 'admin',
@@ -59,39 +67,49 @@ $configuration = [
 	'PATHINFO.PROT' => $_SERVER['REQUEST_SCHEME'] ?? 'https',
 	'PATHINFO.HOST' => $_SERVER['HTTP_HOST'] ?? 'localhost',
 	'PATHINFO.BASE' => '',
+	'WRAP_EMOTICONS' => TRUE,
+	'CATEGORY.DIRECTORY' => 'category',
 	'PAGE.DIRECTORY' => 'page',
 	'POST.DIRECTORY' => 'post',
 	'USER.DIRECTORY' => 'user',
+	'CATEGORY.SLUG_URLS' => TRUE,
 	'PAGE.SLUG_URLS' => TRUE,
 	'POST.SLUG_URLS' => TRUE,
 	'USER.SLUG_URLS' => TRUE,
-	'PAGE.EMOTICONS' => TRUE,
-	'POST.EMOTICONS' => TRUE,
-	'USER.EMOTICONS' => TRUE,
+	'CATEGORY.LIST_SIZE' => 10,
 	'PAGE.LIST_SIZE' => 10,
 	'POST.LIST_SIZE' => 10,
 	'USER.LIST_SIZE' => 10,
-	'PAGE.FEED_SIZE' => 25,
-	'POST.FEED_SIZE' => 25,
+	'POST.FEED_SIZE' => 10,
+	'CATEGORY.DESCRIPTION_SIZE' => 200,
 	'PAGE.DESCRIPTION_SIZE' => 200,
 	'POST.DESCRIPTION_SIZE' => 200,
 	'USER.DESCRIPTION_SIZE' => 200,
-	'PAGE.SINGLE_REDIRECT' => FALSE,
-	'POST.SINGLE_REDIRECT' => FALSE,
-	'USER.SINGLE_REDIRECT' => FALSE,
+	'CATEGORY.REDIRECT_SINGLE' => FALSE,
+	'PAGE.REDIRECT_SINGLE' => FALSE,
+	'POST.REDIRECT_SINGLE' => FALSE,
+	'USER.REDIRECT_SINGLE' => FALSE,
+	'CATEGORY.LIST_SORT' => 'name ASC',
 	'PAGE.LIST_SORT' => 'time_insert DESC',
 	'POST.LIST_SORT' => 'time_insert DESC',
 	'USER.LIST_SORT' => 'time_insert DESC',
-	'PAGE.FEED_SORT' => 'time_insert DESC',
-	'POST.FEED_SORT' => 'time_insert DESC',
-	'PAGE.FEED_GUID' => ['id', 'time_insert'],
-	'POST.FEED_GUID' => ['id', 'time_insert']
-];
+	'POST.FEED_SORT' => 'time_insert DESC'
+] as $name => $value) {
+	Application::set($name, $value);
+}
 
 #===============================================================================
-# Set default configuration
+# Set default configuration (for admin prefixes)
 #===============================================================================
-foreach($configuration as $name => $value) {
+foreach([
+	'ADMIN.CATEGORY.LIST_SIZE' => 12, # for 1/2/3-column grid layout
+	'ADMIN.PAGE.LIST_SIZE' => 12, # for 1/2/3-column grid layout
+	'ADMIN.POST.LIST_SIZE' => 12, # for 1/2/3-column grid layout
+	'ADMIN.USER.LIST_SIZE' => Application::get('USER.LIST_SIZE'),
+	'ADMIN.PAGE.LIST_SORT' => Application::get('PAGE.LIST_SORT'),
+	'ADMIN.POST.LIST_SORT' => Application::get('POST.LIST_SORT'),
+	'ADMIN.USER.LIST_SORT' => Application::get('USER.LIST_SORT')
+] as $name => $value) {
 	Application::set($name, $value);
 }
 
@@ -99,6 +117,18 @@ foreach($configuration as $name => $value) {
 # Include custom configuration
 #===============================================================================
 require 'configuration.php';
+
+#===============================================================================
+# Include functions
+#===============================================================================
+require 'functions.php';
+
+#===============================================================================
+# Include migration detection
+#===============================================================================
+if(Application::get('MIGRATOR.ENABLED')) {
+	require 'migrations.php';
+}
 
 #===============================================================================
 # Override configuration if admin
@@ -126,68 +156,46 @@ if(defined('ADMINISTRATION') AND ADMINISTRATION === TRUE) {
 }
 
 #===============================================================================
-# Include functions
+# Get Language and Database singletons
 #===============================================================================
-require 'functions.php';
-
-#===============================================================================
-# TRY: PDOException
-#===============================================================================
-try {
-	$Language = Application::getLanguage();
-	$Database = Application::getDatabase();
-
-	$Database->setAttribute($Database::ATTR_DEFAULT_FETCH_MODE, $Database::FETCH_ASSOC);
-	$Database->setAttribute($Database::ATTR_ERRMODE, $Database::ERRMODE_EXCEPTION);
-}
-
-#===============================================================================
-# CATCH: PDOException
-#===============================================================================
-catch(PDOException $Exception) {
-	Application::exit($Exception->getMessage());
-}
+$Language = Application::getLanguage();
+$Database = Application::getDatabase();
 
 #===============================================================================
 # Check if "304 Not Modified" and ETag header should be sent
 #===============================================================================
-if(Application::get('CORE.SEND_304') === TRUE AND !defined('ADMINISTRATION')) {
+if(Application::get('CORE.SEND_304') AND !defined('ADMINISTRATION')) {
 
 	#===========================================================================
-	# Select edit time from last edited items (page, post, user)
+	# Fetch timestamps of the last modified entities
 	#===========================================================================
-	$execute = '(SELECT time_update FROM %s ORDER BY time_update DESC LIMIT 1) AS %s';
+	$query = '(SELECT time_update FROM %s ORDER BY time_update DESC LIMIT 1) AS %s';
 
-	$pageSQL = sprintf($execute, Page\Attribute::TABLE, Page\Attribute::TABLE);
-	$postSQL = sprintf($execute, Post\Attribute::TABLE, Post\Attribute::TABLE);
-	$userSQL = sprintf($execute, User\Attribute::TABLE, User\Attribute::TABLE);
+	foreach([
+		ORM\Repositories\CategoryRepository::getTableName(),
+		ORM\Repositories\PageRepository::getTableName(),
+		ORM\Repositories\PostRepository::getTableName(),
+		ORM\Repositories\UserRepository::getTableName()
+    ] as $table) {
+		$parts[] = sprintf($query, $table, $table);
+	}
 
-	$Statement = $Database->query("SELECT {$pageSQL}, {$postSQL}, {$userSQL}");
+	$Statement = $Database->query('SELECT '.implode(',', $parts));
 
 	#===========================================================================
 	# Define HTTP ETag header identifier
 	#===========================================================================
-	$HTTP_ETAG_IDENTIFIER = md5(implode($Statement->fetch()));
+	$etag = md5(implode($Statement->fetch()));
 
 	#===========================================================================
 	# Send ETag header within the HTTP response
 	#===========================================================================
-	HTTP::responseHeader(HTTP::HEADER_ETAG, "\"{$HTTP_ETAG_IDENTIFIER}\"");
+	HTTP::responseHeader(HTTP::HEADER_ETAG, "\"{$etag}\"");
 
 	#===========================================================================
-	# Validate ETag header from the HTTP request
+	# Return "304 Not Modified" if the clients ETag value matches
 	#===========================================================================
-	if(isset($_SERVER['HTTP_IF_NONE_MATCH'])) {
-		$HTTP_IF_NONE_MATCH = $_SERVER['HTTP_IF_NONE_MATCH'];
-		$HTTP_IF_NONE_MATCH = trim($HTTP_IF_NONE_MATCH, '"');
-
-		# If the server adds the extensions to the response header
-		$HTTP_IF_NONE_MATCH = rtrim($HTTP_IF_NONE_MATCH, '-br');
-		$HTTP_IF_NONE_MATCH = rtrim($HTTP_IF_NONE_MATCH, '-gzip');
-
-		if($HTTP_IF_NONE_MATCH === $HTTP_ETAG_IDENTIFIER) {
-			Application::exit(NULL, 304);
-		}
+	if(strpos($_SERVER['HTTP_IF_NONE_MATCH'] ?? '', $etag) !== FALSE) {
+		Application::exit(NULL, 304);
 	}
 }
-?>
