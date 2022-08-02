@@ -1,3 +1,7 @@
+dist: bionic
+services:
+  - mysql
+
 # see http://about.travis-ci.org/docs/user/languages/php/ for more hints
 language: php
 
@@ -7,6 +11,7 @@ php:
 
   # aliased to a recent 7.x version
   - 7.3
+  - 8.1
   # aliased to a recent hhvm version
   # - hhvm
 
@@ -23,7 +28,7 @@ matrix:
 
 # execute any number of scripts before the test run, custom env's are available as variables
 before_script:
-  - mv tests/configuration.php core/configuration.php
+  - mv core/configuration-example.php core/configuration.php
   - if [[ "$DB" == "pgsql" ]]; then psql -c "DROP DATABASE IF EXISTS blog;" -U postgres; fi
   - if [[ "$DB" == "pgsql" ]]; then psql -c "create database blog;" -U postgres; fi
   - if [[ "$DB" == "mysql" ]]; then mysql -e "create database IF NOT EXISTS blog;" -uroot; fi
