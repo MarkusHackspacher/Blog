@@ -9,14 +9,14 @@ class BlogTest extends PHPUnit\Framework\TestCase
      */
     private $pdo;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->pdo = new PDO($GLOBALS['db_dsn'], $GLOBALS['db_username'], $GLOBALS['db_password']);
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->pdo->query("CREATE TABLE hello (what VARCHAR(50) NOT NULL)");
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->pdo->query("DROP TABLE hello");
     }
