@@ -24,8 +24,8 @@ class BlogTest extends PHPUnit\Framework\TestCase
     # Test functions.php generateItemTemplateData
     public function testgenerateItemTemplateData()
     {
-        $Page = Page\Factory::build(1);
-        $User = User\Factory::build($Page->attr('user'));
+        $Page = Template\Factory::build(1);
+        $User = Template\Factory::build($Page->attr('user'));
 
         $test = generateItemTemplateData($Page, $User);
         $testpage = $test->get('PAGE');
@@ -39,8 +39,8 @@ class BlogTest extends PHPUnit\Framework\TestCase
 
         $test = generateUserItemTemplate($User);
 
-        $Post = Post\Factory::build(1);
-        $User = User\Factory::build($Post->attr('user'));
+        $Post = Template\Factory::build(1);
+        $User = Template\Factory::build($Post->attr('user'));
         $test = generatePostItemTemplate($Post, $User);
 
         $page_data = generateItemTemplateData($Page);
