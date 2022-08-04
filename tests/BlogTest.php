@@ -21,40 +21,13 @@ class BlogTest extends PHPUnit\Framework\TestCase
         $this->pdo->query("DROP TABLE hello");
     }
 
-    # Helper function to reduce duplicate code
-    public function testgeneratePageNaviTemplate()
-    {
-        $test = generatePageNaviTemplate(1);
-        $this->assertEquals(1 , $test->get('THIS'));
-        $this->assertEquals(1 , $test->get('LAST'));
-        $this->assertEquals('https://localhost:8080/page/?site=%d' , $test->get('HREF'));
-    }
-
-    # Helper function to reduce duplicate code
-    public function testgeneratePostNaviTemplate()
-    {
-        $test = generatePostNaviTemplate(1);
-        $this->assertEquals(1 , $test->get('THIS'));
-        $this->assertEquals(1 , $test->get('LAST'));
-        $this->assertEquals('https://localhost:8080/post/?site=%d' , $test->get('HREF'));
-    }
-
-    # Helper function to reduce duplicate code
-    public function testgenerateUserNaviTemplate()
-    {
-        $test = generateUserNaviTemplate(1);
-        $this->assertEquals(1 , $test->get('THIS'));
-        $this->assertEquals(1 , $test->get('LAST'));
-        $this->assertEquals('https://localhost:8080/user/?site=%d' , $test->get('HREF'));
-    }
-
-    # Helper function to reduce duplicate code
-    public function testgenerateItemTemplate()
+    # Test functions.php generateItemTemplateData
+    public function testgenerateItemTemplateData()
     {
         $Page = Page\Factory::build(1);
         $User = User\Factory::build($Page->attr('user'));
 
-        $test = generatePageItemTemplate($Page, $User);
+        $test = generateItemTemplateData($Page, $User);
         $testpage = $test->get('PAGE');
         # print_r($testpage);
         $this->assertEquals(1 , $testpage['ATTR']['ID']);
