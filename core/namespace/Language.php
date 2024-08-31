@@ -39,13 +39,6 @@ class Language {
 			return "{{$name}}";
 		}
 
-		return vsprintf($this->text[$name], $arguments);
-	}
-
-	#===============================================================================
-	# DEPRECATED: This method will be removed in the future!
-	#===============================================================================
-	public function template($name, $params = FALSE): string {
-		return $this->text($name, $params);
+		return vsprintf($this->text[$name], (array) $arguments);
 	}
 }

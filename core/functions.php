@@ -98,12 +98,15 @@ function generateUserItemTemplate(User $User): Template {
 #===============================================================================
 function generateItemTemplateData(EntityInterface $Entity): array {
 	$ArgumentParser = new ArgumentParser;
+	$FunctionParser = new FunctionParser;
 	$MarkdownParser = new MarkdownParser;
 
 	$attribute = $Entity->getAll(['password']);
 	$attribute = array_change_key_case($attribute, CASE_UPPER);
 
-	$text = parseContentTags($Entity->get('body'));
+	$text = $Entity->get('body');
+	$text = $FunctionParser->transform($text);
+
 	$arguments = $ArgumentParser->parse($Entity->get('argv') ?? '');
 
 	$images = $MarkdownParser->parse($text)['img']['src'] ?? [];
@@ -151,39 +154,13 @@ function generateCategoryDataTree(array $category_data, $root = 0): array {
 }
 
 #===============================================================================
-# Parse content tags
-#===============================================================================
-function parseContentTags(string $text): string {
-	$entity_tags = '#\{(POST|PAGE|USER)\[([0-9]+)\]\}#';
-
-	$text = preg_replace_callback($entity_tags, function($matches) {
-		$namespace = ucfirst(strtolower($matches[1]));
-		$Repository = Application::getRepository($namespace);
-
-		if($Entity = $Repository->find($matches[2])) {
-			return Application::getEntityURL($Entity);
-		}
-
-		else {
-			return '{undefined}';
-		}
-	}, $text);
-
-	$base_tag = '#\{BASE\[\"([^"]+)\"\]\}#';
-	$file_tag = '#\{FILE\[\"([^"]+)\"\]\}#';
-
-	$text = preg_replace($base_tag, \Application::getURL('$1'), $text);
-	$text = preg_replace($file_tag, \Application::getFileURL('$1'), $text);
-
-	$FunctionParser = new FunctionParser;
-	return $FunctionParser->transform($text);
-}
-
-#===============================================================================
 # Parse entity content
 #===============================================================================
 function parseEntityContent(EntityInterface $Entity): string {
-	$text = parseContentTags($Entity->get('body'));
+	$text = $Entity->get('body');
+
+	$FunctionParser = new FunctionParser();
+	$text = $FunctionParser->transform($text);
 
 	if(Application::get('WRAP_EMOTICONS')) {
 		$EmoticonParser = new EmoticonParser;
@@ -312,13 +289,33 @@ function getEntityMarkdownLink($ns, $id, $text = NULL, $info = NULL): string {
 		return sprintf('`{%s: *Reference error*}`', strtoupper($ns));
 	}
 
-	$title = htmlspecialchars($Entity->get('name') ?? $Entity->get('fullname'));
+	$title = $Entity->get('name') ?? $Entity->get('fullname');
 	$href = Application::getEntityURL($Entity);
 	$text = $text ?: "»{$title}«";
-	$info = $info ?: sprintf('%s »%s«',
-		Application::getLanguage()->text(strtolower($ns)), $title);
+
+	if($info === NULL) {
+		$info = sprintf('%s »%s«',
+			Application::getLanguage()->text(strtolower($ns)),
+			$title);
+	}
+
+	# Hotfix: Replace double quotes with single quotes because currently we
+	# have no sane way to escape double quotes in a string intended to be
+	# used as the title for a Markdown formatted link.
+	$info = str_replace('"', "'", $info);
 
 	return sprintf('[%s](%s "%s")',	$text, $href, $info);
+}
+
+#===========================================================================
+# Callback for (CATEGORY|PAGE|POST|USER)_URL content function
+#===========================================================================
+function getEntityURL($ns, $id): string {
+	if(!$Entity = Application::getRepository($ns)->find($id)) {
+		return sprintf('`{%s_URL: *Reference error*}`', strtoupper($ns));
+	}
+
+	return Application::getEntityURL($Entity);
 }
 
 #===============================================================================
@@ -413,4 +410,32 @@ FunctionParser::register('POST', function($id, $text = NULL, $title = NULL) {
 #===========================================================================
 FunctionParser::register('USER', function($id, $text = NULL, $title = NULL) {
 	return getEntityMarkdownLink('User', $id, $text, $title);
+});
+
+#===========================================================================
+# Get URL to a category entity
+#===========================================================================
+FunctionParser::register('CATEGORY_URL', function($id) {
+	return getEntityURL('Category', $id);
+});
+
+#===========================================================================
+# Get URL to a page entity
+#===========================================================================
+FunctionParser::register('PAGE_URL', function($id) {
+	return getEntityURL('Page', $id);
+});
+
+#===========================================================================
+# Get URL to a post entity
+#===========================================================================
+FunctionParser::register('POST_URL', function($id) {
+	return getEntityURL('Post', $id);
+});
+
+#===========================================================================
+# Get URL to a user entity
+#===========================================================================
+FunctionParser::register('USER_URL', function($id) {
+	return getEntityURL('User', $id);
 });
